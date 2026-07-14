@@ -4,11 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
 import { LogIn, Key, ShieldCheck, CreditCard, Layout, Zap, Award, Mail, Lock, UserPlus } from 'lucide-react';
 
-export function LoginView() {
+interface LoginViewProps {
+  onLogin?: (user: { uid: string; email: string; displayName: string }) => void;
+}
+
+export function LoginView({ onLogin }: LoginViewProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -25,51 +27,17 @@ export function LoginView() {
     setLoading(true);
     setError(null);
 
-    try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-    } catch (err: any) {
-      console.error('Erro de autenticação:', err);
-      // Friendly messages for common Firebase Auth errors
-      const errCode = err?.code || '';
-      const errMsg = err?.message || '';
-      
-      if (errCode === 'auth/invalid-credential' || errMsg.includes('invalid-credential')) {
-        setError(
-          isSignUp 
-            ? 'Erro ao criar conta. Verifique se o provedor de autenticação "E-mail/Senha" está ativado no painel do seu Firebase Console.\n\nSe ele já estiver ativado, certifique-se de preencher um e-mail válido com uma senha segura.'
-            : 'Dados de acesso inválidos ou conta ainda não registrada!\n\n💡 Se este é o seu primeiro acesso ou é um novo colaborador, clique em "Primeiro acesso / Sou um novo colaborador" abaixo para fazer o seu cadastro.'
-        );
-      } else {
-        switch (errCode) {
-          case 'auth/user-not-found':
-            setError('Nenhum usuário encontrado com este e-mail. Ative o modo "Cadastrar-se" caso seja seu primeiro acesso.');
-            break;
-          case 'auth/wrong-password':
-            setError('Senha incorreta. Se esqueceu sua senha, consulte seu administrador.');
-            break;
-          case 'auth/email-already-in-use':
-            setError('Este endereço de e-mail já está sendo utilizado por outra conta de administrador.');
-            break;
-          case 'auth/weak-password':
-            setError('A senha informada é muito fraca. Ela deve possuir pelo menos 6 caracteres.');
-            break;
-          case 'auth/invalid-email':
-            setError('Formato de e-mail inválido.');
-            break;
-          case 'auth/operation-not-allowed':
-            setError('O provedor de login "E-mail/Senha" não está ativado no seu painel do Firebase.\n\nComo resolver:\n1. Acesse o Console do Firebase\n2. Vá em Autenticação > Sign-in Method\n3. Ative a opção "E-mail/Senha" e salve.');
-            break;
-          default:
-            setError(`Erro de autenticação (${errCode || 'Desconhecido'}):\n${err.message || 'Verifique se o provedor "E-mail/Senha" está ativado no Firebase.'}`);
-        }
-      }
-    } finally {
+    // Simulated offline/local authentication
+    setTimeout(() => {
       setLoading(false);
-    }
+      if (onLogin) {
+        onLogin({
+          uid: 'local_' + Math.random().toString(36).substring(2, 9),
+          email: email.trim(),
+          displayName: email.split('@')[0]
+        });
+      }
+    }, 800);
   };
 
   return (

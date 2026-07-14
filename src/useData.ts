@@ -1,20 +1,10 @@
 /**
  * @license
- * SPDX-License-Identifier: Apache-2.5
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useState, useEffect } from 'react';
 import { AppRecord, AppConfig } from './types';
-import { db, handleFirestoreError, OperationType } from './lib/firebase';
-import {
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy
-} from 'firebase/firestore';
 
 const DEFAULT_CONFIG: AppConfig = {
   companyName: 'TransporteDemo Logística',
@@ -46,232 +36,67 @@ São Paulo, [DATA_CONTRATO].`
 };
 
 export function useData(user: any) {
-  const [records, setRecords] = useState<AppRecord[]>([]);
-  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-  const [role, setRole] = useState<'admin' | 'collaborator'>('collaborator');
-  const [ownerUid, setOwnerUid] = useState<string>('');
-  const [isApproved, setIsApproved] = useState<boolean>(false);
-  const [isRoleLoaded, setIsRoleLoaded] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [records, setRecords] = useState<AppRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('transport_records');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to parse records from localStorage:', e);
+      return [];
+    }
+  });
 
-  // 1. Initial lookup for user roles & the owner database ID
+  const [config, setConfig] = useState<AppConfig>(() => {
+    try {
+      const saved = localStorage.getItem('transport_config');
+      return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
+    } catch (e) {
+      console.error('Failed to parse config from localStorage:', e);
+      return DEFAULT_CONFIG;
+    }
+  });
+
+  const [role] = useState<'admin' | 'collaborator'>('admin');
+  const [ownerUid] = useState<string>('local_owner');
+  const [isApproved] = useState<boolean>(true);
+
   useEffect(() => {
-    if (!user || !user.uid) {
-      setRole('collaborator');
-      setOwnerUid('');
-      setIsApproved(false);
-      setIsRoleLoaded(true);
-      return;
-    }
+    localStorage.setItem('transport_records', JSON.stringify(records));
+  }, [records]);
 
-    setIsRoleLoaded(false);
-    const emailLower = (user.email || '').toLowerCase().trim();
-
-    // Check if master owner
-    if (emailLower === 'luizcosta8604@gmail.com') {
-      setRole('admin');
-      setOwnerUid(user.uid);
-      setIsApproved(true);
-      setIsRoleLoaded(true);
-      return;
-    }
-
-    // Otherwise, check the allowed_users collection
-    const allowedUserDocRef = doc(db, 'allowed_users', emailLower);
-    const unsubscribeAllowed = onSnapshot(allowedUserDocRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const allowedData = snapshot.data();
-        setRole(allowedData.role || 'collaborator');
-        setOwnerUid(allowedData.ownerUid || user.uid);
-        setIsApproved(true);
-      } else {
-        // If not listed inside allowed_users, they are NOT approved!
-        setRole('collaborator');
-        setOwnerUid('');
-        setIsApproved(false);
-      }
-      setIsRoleLoaded(true);
-    }, (err) => {
-      console.error('Error fetching role permissions:', err);
-      // Fallback
-      setRole('collaborator');
-      setOwnerUid('');
-      setIsApproved(false);
-      setIsRoleLoaded(true);
-    });
-
-    return () => {
-      unsubscribeAllowed();
-    };
-  }, [user]);
-
-  // 2. Real-time Config and Records sync on the tenant owner database
   useEffect(() => {
-    if (!user || !user.uid || !isRoleLoaded || !ownerUid || !isApproved) {
-      setRecords([]);
-      setConfig(DEFAULT_CONFIG);
-      setIsLoaded(true);
-      return;
-    }
-
-    setIsLoaded(false);
-
-    // 1. Config sync with ownerUid
-    const configDocRef = doc(db, 'users', ownerUid, 'settings', 'config');
-    const unsubscribeConfig = onSnapshot(
-      configDocRef,
-      async (snapshot) => {
-        if (snapshot.exists()) {
-          const fetchedConfig = snapshot.data() as AppConfig;
-          setConfig(fetchedConfig);
-        } else {
-          // Initialize owner config with default
-          try {
-            await setDoc(configDocRef, DEFAULT_CONFIG);
-            setConfig(DEFAULT_CONFIG);
-          } catch (err) {
-            handleFirestoreError(err, OperationType.WRITE, `users/${ownerUid}/settings/config`);
-          }
-        }
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, `users/${ownerUid}/settings/config`);
-      }
-    );
-
-    // 2. Records sync with ownerUid
-    const recordsColRef = collection(db, 'users', ownerUid, 'records');
-    const recordsQuery = query(recordsColRef, orderBy('dateCreated', 'desc'));
-    
-    const unsubscribeRecords = onSnapshot(
-      recordsQuery,
-      (snapshot) => {
-        const fetchedRecords: AppRecord[] = [];
-        snapshot.forEach((docSnap) => {
-          fetchedRecords.push(docSnap.data() as AppRecord);
-        });
-        setRecords(fetchedRecords);
-        setIsLoaded(true);
-      },
-      (error) => {
-        // Fallback or missing indexes support
-        if (error.message?.includes('failed-precondition') || error.message?.includes('index')) {
-          console.warn('Running records query without orderBy. Index might be compiling...');
-          const fallbackUnsubscribe = onSnapshot(
-            recordsColRef,
-            (fallbackSnapshot) => {
-              const fetchedRecords: AppRecord[] = [];
-              fallbackSnapshot.forEach((docSnap) => {
-                fetchedRecords.push(docSnap.data() as AppRecord);
-              });
-              fetchedRecords.sort((a, b) => b.dateCreated.localeCompare(a.dateCreated));
-              setRecords(fetchedRecords);
-              setIsLoaded(true);
-            },
-            (fallbackErr) => {
-              handleFirestoreError(fallbackErr, OperationType.LIST, `users/${ownerUid}/records`);
-            }
-          );
-          return () => {
-            unsubscribeConfig();
-            fallbackUnsubscribe();
-          };
-        } else {
-          handleFirestoreError(error, OperationType.LIST, `users/${ownerUid}/records`);
-          setIsLoaded(true);
-        }
-      }
-    );
-
-    return () => {
-      unsubscribeConfig();
-      unsubscribeRecords();
-    };
-  }, [user, ownerUid, isRoleLoaded]);
+    localStorage.setItem('transport_config', JSON.stringify(config));
+  }, [config]);
 
   const addRecord = async (record: AppRecord) => {
-    if (!user || !user.uid || !ownerUid) return;
-    try {
-      const finalRecord = { 
-        ...record, 
-        ownerId: ownerUid,
-        createdBy: user.uid,
-        createdByName: user.displayName || user.email || 'Colaborador'
-      };
-      const docRef = doc(db, 'users', ownerUid, 'records', record.id);
-      await setDoc(docRef, finalRecord);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `users/${ownerUid}/records/${record.id}`);
-    }
+    const finalRecord = { 
+      ...record, 
+      ownerId: ownerUid,
+      createdBy: 'local_user',
+      createdByName: 'Administrador'
+    };
+    setRecords(prev => [finalRecord, ...prev]);
   };
 
   const updateRecord = async (id: string, updatedRecord: Partial<AppRecord>) => {
-    if (!user || !user.uid || !ownerUid) return;
-    try {
-      const existing = records.find(r => r.id === id);
-      if (!existing) return;
-
-      const finalRecord = {
-        ...existing,
-        ...updatedRecord,
-        ownerId: ownerUid,
-        lastUpdatedBy: user.uid,
-        lastUpdatedByName: user.displayName || user.email || 'Colaborador'
-      };
-      
-      if ('updatedAt' in finalRecord) {
-        delete (finalRecord as any).updatedAt;
-      }
-
-      const docRef = doc(db, 'users', ownerUid, 'records', id);
-      await setDoc(docRef, finalRecord);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${ownerUid}/records/${id}`);
-    }
+    setRecords(prev => prev.map(r => r.id === id ? { ...r, ...updatedRecord } as AppRecord : r));
   };
 
   const deleteRecord = async (id: string) => {
-    if (!user || !user.uid || !ownerUid) return;
-    try {
-      const record = records.find(r => r.id === id);
-      if (record) {
-        const isUserAdmin = role === 'admin' || (user.email || '').toLowerCase().trim() === 'luizcosta8604@gmail.com';
-        const isCreator = record.createdBy === user.uid;
-        if (!isUserAdmin && !isCreator) {
-          alert('Permissão Negada: Apenas o criador deste registro ou um administrador podem excluí-lo.');
-          return;
-        }
-      }
-
-      const docRef = doc(db, 'users', ownerUid, 'records', id);
-      await deleteDoc(docRef);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `users/${ownerUid}/records/${id}`);
-    }
-  };
-
-  const setConfigOnServer = async (newConfig: AppConfig | ((prev: AppConfig) => AppConfig)) => {
-    if (!user || !user.uid || !ownerUid) return;
-    const finalConfig = typeof newConfig === 'function' ? newConfig(config) : newConfig;
-    
-    try {
-      const docRef = doc(db, 'users', ownerUid, 'settings', 'config');
-      await setDoc(docRef, finalConfig);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `users/${ownerUid}/settings/config`);
-    }
+    setRecords(prev => prev.filter(r => r.id !== id));
   };
 
   return {
     records,
     config,
-    setConfig: setConfigOnServer,
+    setConfig,
     addRecord,
     updateRecord,
     deleteRecord,
-    isLoaded: isLoaded && isRoleLoaded,
+    isLoaded: true,
     role,
     ownerUid,
     isApproved,
   };
 }
+

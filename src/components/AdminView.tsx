@@ -4,8 +4,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { collection, doc, onSnapshot, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { UserPlus, Shield, Trash2, Mail, Calendar, Key } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
 
@@ -28,26 +26,26 @@ export function AdminView({ ownerUid }: AdminViewProps) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const colRef = collection(db, 'allowed_users');
-    
-    const unsubscribe = onSnapshot(colRef, (snapshot) => {
-      const users: AllowedUser[] = [];
-      snapshot.forEach((snapshotDoc) => {
-        users.push(snapshotDoc.data() as AllowedUser);
-      });
-      setAllowedUsers(users);
-      setLoading(false);
-    }, (error) => {
-      // Catch and log firebase errors cleanly
-      try {
-        handleFirestoreError(error, OperationType.LIST, 'allowed_users');
-      } catch (err) {
-        console.error(err);
+    try {
+      const saved = localStorage.getItem('transport_allowed_users');
+      if (saved) {
+        setAllowedUsers(JSON.parse(saved));
+      } else {
+        const defaultList: AllowedUser[] = [
+          {
+            email: 'luizcosta8604@gmail.com',
+            role: 'admin',
+            addedAt: new Date().toISOString(),
+            ownerUid: 'local_owner'
+          }
+        ];
+        localStorage.setItem('transport_allowed_users', JSON.stringify(defaultList));
+        setAllowedUsers(defaultList);
       }
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    } catch (e) {
+      console.error('Error loading allowed users:', e);
+    }
+    setLoading(false);
   }, []);
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -56,26 +54,22 @@ export function AdminView({ ownerUid }: AdminViewProps) {
 
     setSubmitting(true);
     const targetEmail = email.toLowerCase().trim();
-    const docRef = doc(db, 'allowed_users', targetEmail);
 
     try {
       const payload: AllowedUser = {
         email: targetEmail,
         role,
         addedAt: new Date().toISOString(),
-        ownerUid: ownerUid || auth.currentUser?.uid || ''
+        ownerUid: 'local_owner'
       };
 
-      await setDoc(docRef, payload);
+      const newList = [payload, ...allowedUsers.filter(u => u.email !== targetEmail)];
+      localStorage.setItem('transport_allowed_users', JSON.stringify(newList));
+      setAllowedUsers(newList);
       setEmail('');
       setRole('collaborator');
     } catch (error) {
-      alert('Erro ao convidar usuário. Verifique suas credenciais de administrador.');
-      try {
-        handleFirestoreError(error, OperationType.CREATE, `allowed_users/${targetEmail}`);
-      } catch (err) {
-        console.error(err);
-      }
+      alert('Erro ao convidar usuário.');
     } finally {
       setSubmitting(false);
     }
@@ -87,14 +81,11 @@ export function AdminView({ ownerUid }: AdminViewProps) {
     }
 
     try {
-      await deleteDoc(doc(db, 'allowed_users', targetEmail));
+      const newList = allowedUsers.filter(u => u.email !== targetEmail);
+      localStorage.setItem('transport_allowed_users', JSON.stringify(newList));
+      setAllowedUsers(newList);
     } catch (error) {
       alert('Erro ao remover usuário.');
-      try {
-        handleFirestoreError(error, OperationType.DELETE, `allowed_users/${targetEmail}`);
-      } catch (err) {
-        console.error(err);
-      }
     }
   };
 

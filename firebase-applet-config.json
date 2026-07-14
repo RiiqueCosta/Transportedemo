@@ -1,10 +1,12 @@
 {
-  "projectId": "lori-faturamento",
-  "appId": "1:1037735778869:web:dd8e5ede764832ed966f7c",
-  "apiKey": "AIzaSyDx3SFXuTEosB45YxVN59ROiUXz3RgD3ds",
-  "authDomain": "lori-faturamento.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
-  "storageBucket": "lori-faturamento.firebasestorage.app",
-  "messagingSenderId": "1037735778869",
-  "measurementId": ""
+  "projectId": "gen-lang-client-0999756636",
+  "appId": "1:928761659897:web:3f75f187b2147d2e65bd28",
+  "apiKey": "AIzaSyAWQP3KFJX2D0nc5uTZfm-G_SVPRmTVS3k",
+  "authDomain": "gen-lang-client-0999756636.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-loriteste-b0a2e5a0-8341-46ff-b735-e9e5677327ba",
+  "storageBucket": "gen-lang-client-0999756636.firebasestorage.app",
+  "messagingSenderId": "928761659897",
+  "measurementId": "",
+  "oAuthClientId": "928761659897-1r50bgri0393jdoepspf63emobq7214q.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
