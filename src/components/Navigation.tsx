@@ -15,6 +15,7 @@ import {
   Wallet, // Financeiro
   BarChart3, // Relatórios
   Settings, // Configurações
+  Database, // Supabase Notes
   Menu, 
   X, 
   Sun, 
@@ -34,6 +35,7 @@ export type ViewType =
   | 'finance' 
   | 'reports' 
   | 'settings' 
+  | 'supabase_notes'
   | 'admin';
 
 interface SidebarProps {
@@ -58,6 +60,7 @@ const baseNavItems = [
   { id: 'contracts', label: 'Contratos', icon: FileText },
   { id: 'finance', label: 'Financeiro', icon: Wallet },
   { id: 'reports', label: 'Relatórios', icon: BarChart3 },
+  { id: 'supabase_notes', label: 'Notas Supabase', icon: Database },
   { id: 'settings', label: 'Configurações', icon: Settings },
 ];
 

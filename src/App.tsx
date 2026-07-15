@@ -10,15 +10,15 @@ import { ClientsView } from './components/ClientsView';
 import { VehiclesView } from './components/VehiclesView';
 import { FleetView } from './components/FleetView';
 import { DriversView } from './components/DriversView';
-import { TransportRequestsView } from './components/TransportRequestsView';
 import { ContractsView } from './components/ContractsView';
+import { TransportRequestsView } from './components/TransportRequestsView';
 import { FinanceView } from './components/FinanceView';
 import { ReportsView } from './components/ReportsView';
 import { SettingsView } from './components/SettingsView';
 import { AdminView } from './components/AdminView';
 import { LoginView } from './components/LoginView';
+import { SupabaseNotesView } from './components/SupabaseNotesView';
 import { useData } from './useData';
-import { AppRecord } from './types';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<any>(() => {
@@ -33,7 +33,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Sync data reactively from localStorage using user object
+  // Sync data reactively from localStorage using useData hook
   const { records, config, setConfig, addRecord, deleteRecord, updateRecord, isLoaded, role, ownerUid, isApproved } = useData(currentUser);
 
   useEffect(() => {
@@ -55,12 +55,19 @@ export default function App() {
     setCurrentUser(user);
   };
 
-  // 2. Redirect to Login View if not signed in
+  const toggleTheme = () => {
+    setConfig((prev) => ({
+      ...prev,
+      theme: prev.theme === 'light' ? 'dark' : 'light'
+    }));
+  };
+
+  // Redirect to Login View if not signed in
   if (!currentUser) {
     return <LoginView onLogin={handleLogin} />;
   }
 
-  // 3. Waiting for sync data
+  // Waiting for local storage sync
   if (!isLoaded) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 transition-colors">
@@ -72,174 +79,138 @@ export default function App() {
     );
   }
 
-  // 4. Checking approval status
+  // Check approved status
   if (!isApproved) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
-        <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 md:p-10 shadow-2xl space-y-6 text-center">
-          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-950/20 rounded-2xl flex items-center justify-center text-blue-500 mx-auto animate-pulse">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          
-          <div className="space-y-2">
-            <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
-              Acesso em Análise
-            </h1>
-            <p className="text-zinc-505 dark:text-zinc-400 text-sm leading-normal">
-              Olá, <span className="font-bold text-zinc-700 dark:text-zinc-300">{currentUser?.email}</span>! Seu cadastro foi recebido, mas precisa ser ativado pelo administrador da transportadora.
-            </p>
-          </div>
-          
-          <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-150 dark:border-zinc-850 text-left space-y-3">
-            <div className="flex items-center gap-2 text-xs text-brand font-bold">
-              <div className="w-2 h-2 rounded-full bg-brand animate-ping" />
-              <span>Aguardando ativação do seu usuário</span>
-            </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
-              O administrador principal (<strong>luizcosta8604@gmail.com</strong>) deve autorizar o seu endereço no painel operacional de colaboradores.
-            </p>
-            <p className="text-[10px] text-zinc-400 dark:text-zinc-505 italic mt-1 bg-white dark:bg-zinc-900 p-2 rounded border border-zinc-100 dark:border-zinc-800">
-              💡 Assim que seu login for aprovado, o painel será carregado automaticamente!
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 pt-2">
-            <button
-              onClick={handleLogout}
-              className="w-full py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              Fazer Logoff (Sair)
-            </button>
-          </div>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6 text-center">
+        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-950/40 rounded-2xl flex items-center justify-center text-orange-600 mb-4 animate-bounce">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
         </div>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Acesso em Análise</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-sm leading-relaxed">
+          O seu e-mail (<strong className="text-zinc-700 dark:text-zinc-200">{currentUser.email}</strong>) foi cadastrado, mas ainda não está aprovado por um administrador. Entre em contato com seu gestor para liberação.
+        </p>
+        <button
+          onClick={handleLogout}
+          className="mt-6 px-6 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-sm font-semibold rounded-xl transition-all cursor-pointer"
+        >
+          Voltar para tela de Login
+        </button>
       </div>
     );
   }
 
-  const handleThemeToggle = () => {
-    setConfig(prev => ({
-      ...prev,
-      theme: prev.theme === 'light' ? 'dark' : 'light'
-    }));
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <DashboardView records={records} />;
+      case 'clients':
+        return (
+          <ClientsView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'vehicles_transported':
+        return (
+          <VehiclesView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'fleet':
+        return (
+          <FleetView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'drivers':
+        return (
+          <DriversView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'contracts':
+        return (
+          <ContractsView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'transport_requests':
+        return (
+          <TransportRequestsView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'finance':
+        return (
+          <FinanceView 
+            records={records} 
+            onAdd={addRecord} 
+            onUpdate={updateRecord} 
+            onDelete={deleteRecord} 
+          />
+        );
+      case 'reports':
+        return <ReportsView records={records} config={config} />;
+      case 'settings':
+        return <SettingsView config={config} setConfig={setConfig} />;
+      case 'supabase_notes':
+        return <SupabaseNotesView />;
+      case 'admin':
+        return <AdminView ownerUid={ownerUid} />;
+      default:
+        return <DashboardView records={records} />;
+    }
   };
 
-  const isUserAdmin = role === 'admin' || (currentUser?.email || '').toLowerCase().trim() === 'luizcosta8604@gmail.com';
-
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 transition-colors duration-300">
+    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors duration-300 font-sans overflow-hidden">
+      {/* Sidebar */}
       <Sidebar 
         currentView={currentView} 
         onViewChange={setCurrentView} 
         isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)}
+        onClose={() => setIsSidebarOpen(false)} 
         user={currentUser}
         onLogout={handleLogout}
         role={role}
       />
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Navbar */}
         <Navbar 
-          onMenuToggle={() => setIsSidebarOpen(true)} 
-          companyName={config.companyName || "TransporteDemo"}
+          onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          companyName={config.companyName}
           theme={config.theme}
-          onThemeToggle={handleThemeToggle}
+          onThemeToggle={toggleTheme}
           onViewChange={setCurrentView}
           user={currentUser}
         />
 
+        {/* View Content Panel */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
-            {currentView === 'dashboard' && (
-              <DashboardView records={records} />
-            )}
-            {currentView === 'clients' && (
-              <ClientsView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'transport_requests' && (
-              <TransportRequestsView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'vehicles_transported' && (
-              <VehiclesView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'fleet' && (
-              <FleetView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'drivers' && (
-              <DriversView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'contracts' && (
-              <ContractsView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'finance' && (
-              <FinanceView 
-                records={records} 
-                onAdd={addRecord} 
-                onUpdate={updateRecord} 
-                onDelete={deleteRecord} 
-              />
-            )}
-            {currentView === 'reports' && (
-              isUserAdmin ? (
-                <ReportsView records={records} config={config} />
-              ) : (
-                <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-                  <p className="font-bold text-lg text-red-500">Acesso Restrito</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Apenas administradores possuem acesso aos relatórios consolidados.</p>
-                </div>
-              )
-            )}
-            {currentView === 'admin' && (
-              isUserAdmin ? (
-                <AdminView ownerUid={ownerUid} />
-              ) : (
-                <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-                  <p className="font-bold text-lg text-red-500">Acesso Restrito</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Painel restrito a administradores.</p>
-                </div>
-              )
-            )}
-            {currentView === 'settings' && (
-              isUserAdmin ? (
-                <SettingsView config={config} setConfig={setConfig} />
-              ) : (
-                <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-                  <p className="font-bold text-lg text-red-500">Acesso Restrito</p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Painel restrito a administradores.</p>
-                </div>
-              )
-            )}
+            {renderCurrentView()}
           </div>
         </main>
       </div>
