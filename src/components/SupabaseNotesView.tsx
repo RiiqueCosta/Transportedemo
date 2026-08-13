@@ -290,7 +290,7 @@ export function SupabaseNotesView() {
           <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap gap-4 items-center justify-between">
             <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm">
               {configured && !demoMode
-                ? 'Conectado de forma segura através do SDK oficial do Supabase na conta qetbqmbyvjbcgmkhcrmr.'
+                ? 'Conectado de forma segura através do SDK oficial do Supabase na conta yzpbpgjyqhrdnvsknfst.'
                 : 'As chaves do projeto ainda contêm o valor de demonstração. Você pode testar no simulador abaixo ou configurar suas chaves.'}
             </p>
             {!configured && !demoMode && (
@@ -503,32 +503,145 @@ export function SupabaseNotesView() {
               1. Script SQL do Supabase
             </h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              Abra o painel do seu projeto Supabase (<strong className="text-zinc-700 dark:text-zinc-300">qetbqmbyvjbcgmkhcrmr</strong>), vá em <strong className="text-zinc-700 dark:text-zinc-300">SQL Editor</strong>, crie uma nova query e cole o seguinte script para criar a tabela de notas e configurar as políticas de acesso livre para leitura e gravação:
+              Abra o painel do seu projeto Supabase (<strong className="text-zinc-700 dark:text-zinc-300">yzpbpgjyqhrdnvsknfst</strong>), vá em <strong className="text-zinc-700 dark:text-zinc-300">SQL Editor</strong>, crie uma nova query e cole o seguinte script para criar a tabela de notas e configurar as políticas de acesso livre para leitura e gravação:
             </p>
 
             <div className="relative">
               <pre className="bg-zinc-950 text-emerald-400 p-5 rounded-xl font-mono text-xs overflow-x-auto leading-relaxed border border-zinc-850">
-{`-- 1. Criar tabela de Notas
-CREATE TABLE notes (
-  id bigint primary key generated always as identity,
-  title text not null
+{`-- ====================================================================
+-- SCRIPT SQL COMPLETO PARA SUPABASE - SISTEMA DE TRANSPORTE E LOGÍSTICA
+-- Projeto: yzpbpgjyqhrdnvsknfst.supabase.co
+-- Habilita extensão UUID e cria tabelas com RLS (Row Level Security)
+-- ====================================================================
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. TABELA DE NOTAS (notes)
+CREATE TABLE IF NOT EXISTS public.notes (
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  title text NOT NULL,
+  created_at timestamptz DEFAULT now()
 );
+ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Notes select" ON public.notes FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Notes insert" ON public.notes FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Notes update" ON public.notes FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Notes delete" ON public.notes FOR DELETE TO anon, authenticated USING (true);
 
--- 2. Inserir alguns dados de demonstração
-INSERT INTO notes (title)
-VALUES
-  ('Primeira nota diretamente gravada no Supabase Postgres.'),
-  ('O sistema de transporte está totalmente conectado com nosso banco!'),
-  ('Lori-TI Solutions e Supabase integrados com sucesso!');
+-- 2. TABELA DE CLIENTES (clients)
+CREATE TABLE IF NOT EXISTS public.clients (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner',
+  name text NOT NULL,
+  cpf_cnpj text NOT NULL,
+  rg text, phone text, whatsapp text, email text, cep text, address text, number text, complement text, city text, state text, observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Clients select" ON public.clients FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Clients insert" ON public.clients FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Clients update" ON public.clients FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Clients delete" ON public.clients FOR DELETE TO anon, authenticated USING (true);
 
--- 3. Habilitar segurança de linhas (RLS)
-ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+-- 3. TABELA DE VEÍCULOS TRANSPORTADOS (vehicles_transported)
+CREATE TABLE IF NOT EXISTS public.vehicles_transported (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner',
+  brand text NOT NULL, model text NOT NULL, year text, color text, plate text NOT NULL, renavam text, chassis text, fuel text, value numeric(12, 2) DEFAULT 0.00, image_url text, observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.vehicles_transported ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Vehicles select" ON public.vehicles_transported FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Vehicles insert" ON public.vehicles_transported FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Vehicles update" ON public.vehicles_transported FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Vehicles delete" ON public.vehicles_transported FOR DELETE TO anon, authenticated USING (true);
 
--- 4. Criar políticas de acesso (Público de leitura e gravação para anon)
-CREATE POLICY "Leitura livre" ON notes FOR SELECT TO anon USING (true);
-CREATE POLICY "Inserção livre" ON notes FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "Edição livre" ON notes FOR UPDATE TO anon USING (true);
-CREATE POLICY "Remoção livre" ON notes FOR DELETE TO anon USING (true);`}
+-- 4. TABELA DA FROTA (fleet)
+CREATE TABLE IF NOT EXISTS public.fleet (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner',
+  plate text NOT NULL, model text NOT NULL, brand text NOT NULL, fleet_type text CHECK (fleet_type IN ('car', 'van', 'truck')), capacity text, year text, renavam text, chassis text, current_mileage numeric(10, 2) DEFAULT 0, status text DEFAULT 'available', last_maintenance_date date, next_maintenance_date date, licensing_date date, insurance_expiry date, observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.fleet ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Fleet select" ON public.fleet FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Fleet insert" ON public.fleet FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Fleet update" ON public.fleet FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Fleet delete" ON public.fleet FOR DELETE TO anon, authenticated USING (true);
+
+-- 5. TABELA DE MOTORISTAS (drivers)
+CREATE TABLE IF NOT EXISTS public.drivers (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner',
+  name text NOT NULL, cpf text NOT NULL, rg text, cnh text NOT NULL, cnh_category text NOT NULL, cnh_expiry date, phone text, email text, address text, city text, state text, blood_type text, status text DEFAULT 'available', observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.drivers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Drivers select" ON public.drivers FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Drivers insert" ON public.drivers FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Drivers update" ON public.drivers FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Drivers delete" ON public.drivers FOR DELETE TO anon, authenticated USING (true);
+
+-- 6. TABELA DE ORDENS DE TRANSPORTE (transport_requests)
+CREATE TABLE IF NOT EXISTS public.transport_requests (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner', client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL, client_name text, vehicle_id uuid REFERENCES public.vehicles_transported(id) ON DELETE SET NULL, vehicle_name text, origin text NOT NULL, destination text NOT NULL, collect_date date, estimated_delivery_date date, driver_id uuid REFERENCES public.drivers(id) ON DELETE SET NULL, driver_name text, fleet_id uuid REFERENCES public.fleet(id) ON DELETE SET NULL, fleet_plate text, base_value numeric(12, 2) DEFAULT 0.00, toll_cost numeric(12, 2) DEFAULT 0.00, insurance_cost numeric(12, 2) DEFAULT 0.00, total_value numeric(12, 2) DEFAULT 0.00, distance_km numeric(10, 2) DEFAULT 0, estimated_time text, route_details text, status text DEFAULT 'scheduled', observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.transport_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Transport requests select" ON public.transport_requests FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Transport requests insert" ON public.transport_requests FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Transport requests update" ON public.transport_requests FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Transport requests delete" ON public.transport_requests FOR DELETE TO anon, authenticated USING (true);
+
+-- 7. TABELA DE CONTRATOS (contracts)
+CREATE TABLE IF NOT EXISTS public.contracts (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner', contract_number text NOT NULL, title text NOT NULL, template_type text DEFAULT 'standard', clauses text, status text DEFAULT 'draft', client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL, client_name text, request_id uuid REFERENCES public.transport_requests(id) ON DELETE SET NULL, value numeric(12, 2) DEFAULT 0.00, observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Contracts select" ON public.contracts FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Contracts insert" ON public.contracts FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Contracts update" ON public.contracts FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Contracts delete" ON public.contracts FOR DELETE TO anon, authenticated USING (true);
+
+-- 8. TABELA DE FINANCEIRO (finances)
+CREATE TABLE IF NOT EXISTS public.finances (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  owner_id text DEFAULT 'local_owner', finance_type text NOT NULL CHECK (finance_type IN ('receivable', 'payable')), description text NOT NULL, value numeric(12, 2) NOT NULL DEFAULT 0.00, due_date date NOT NULL, payment_date date, status text DEFAULT 'pending', category text, transport_request_id uuid REFERENCES public.transport_requests(id) ON DELETE SET NULL, client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL, client_name text, observations text,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.finances ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Finances select" ON public.finances FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Finances insert" ON public.finances FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Finances update" ON public.finances FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Finances delete" ON public.finances FOR DELETE TO anon, authenticated USING (true);
+
+-- 9. TABELA UNIFICADA DE REGISTROS (records)
+CREATE TABLE IF NOT EXISTS public.records (
+  id text PRIMARY KEY, type text NOT NULL, owner_id text DEFAULT 'local_owner', data jsonb NOT NULL,
+  created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.records ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Records select" ON public.records FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Records insert" ON public.records FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "Records update" ON public.records FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "Records delete" ON public.records FOR DELETE TO anon, authenticated USING (true);
+
+-- 10. TABELA DE CONFIGURAÇÃO (app_config)
+CREATE TABLE IF NOT EXISTS public.app_config (
+  id text PRIMARY KEY DEFAULT 'default', company_name text DEFAULT 'TransporteDemo Logística', company_phone text, company_email text, company_cnpj text, theme text DEFAULT 'light', value_per_km numeric(10,2) DEFAULT 4.50, default_insurance numeric(10,2) DEFAULT 150.00, default_tax numeric(10,2) DEFAULT 50.00, contract_template text, data jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "App config select" ON public.app_config FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "App config insert" ON public.app_config FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "App config update" ON public.app_config FOR UPDATE TO anon, authenticated USING (true);
+CREATE POLICY "App config delete" ON public.app_config FOR DELETE TO anon, authenticated USING (true);
+
+-- DADOS DE TESTE INICIAIS
+INSERT INTO public.notes (title) VALUES ('Integração completa do Supabase executada!') ON CONFLICT DO NOTHING;`}
               </pre>
             </div>
           </div>
@@ -547,7 +660,7 @@ CREATE POLICY "Remoção livre" ON notes FOR DELETE TO anon USING (true);`}
                 <span>Estrutura do arquivo .env</span>
               </div>
               <pre className="font-mono text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-{`NEXT_PUBLIC_SUPABASE_URL=https://qetbqmbyvjbcgmkhcrmr.supabase.co
+{`NEXT_PUBLIC_SUPABASE_URL=https://yzpbpgjyqhrdnvsknfst.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=seu-anon-key-real-aqui`}
               </pre>
             </div>
