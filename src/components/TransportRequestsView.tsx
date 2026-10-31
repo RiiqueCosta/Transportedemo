@@ -7,9 +7,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit2, Trash2, Compass, Eye, X, MapPin, 
   Calendar, User, Truck, Car, Calculator, HelpCircle, 
-  CheckCircle, ArrowRight, DollarSign, RefreshCcw, Info, ChevronRight
+  CheckCircle, ArrowRight, DollarSign, RefreshCcw, Info, ChevronRight, Download
 } from 'lucide-react';
-import { AppRecord, TransportRequest, Client, VehicleTransported, Driver, Fleet } from '../types';
+import { AppRecord, AppConfig, TransportRequest, Client, VehicleTransported, Driver, Fleet } from '../types';
+import { downloadQuotePdf } from '../lib/pdf';
 import { formatCurrency, generateId } from '../lib/utils';
 
 interface TransportRequestsViewProps {
@@ -17,9 +18,10 @@ interface TransportRequestsViewProps {
   onAdd: (record: AppRecord) => void;
   onUpdate: (id: string, record: Partial<AppRecord>) => void;
   onDelete: (id: string) => void;
+  config: AppConfig;
 }
 
-export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: TransportRequestsViewProps) {
+export function TransportRequestsView({ records, onAdd, onUpdate, onDelete, config }: TransportRequestsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
@@ -255,7 +257,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
     <div className="space-y-6 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Solicitações de Transporte</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Solicitações de Transporte</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Roteirização, cálculo de fretes com seguro e controle de status de entrega.</p>
         </div>
         <button 
@@ -281,11 +283,11 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold text-zinc-500">
           <span>Coletas Ativas</span>
-          <span className="text-xl font-black text-brand">{requests.filter(r => r.status !== 'delivered' && r.status !== 'cancelled').length}</span>
+          <span className="text-xl font-bold text-brand">{requests.filter(r => r.status !== 'delivered' && r.status !== 'cancelled').length}</span>
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold text-zinc-500">
           <span>Finalizados</span>
-          <span className="text-xl font-black text-emerald-600">{requests.filter(r => r.status === 'delivered').length}</span>
+          <span className="text-xl font-bold text-emerald-600">{requests.filter(r => r.status === 'delivered').length}</span>
         </div>
       </div>
 
@@ -299,7 +301,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
               <div 
                 key={r.id}
                 onClick={() => setSelectedRequest(r)}
-                className={`p-5 bg-white dark:bg-zinc-900 rounded-3xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
+                className={`p-5 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
                   selectedRequest?.id === r.id ? "border-brand ring-2 ring-brand/10" : "border-zinc-200 dark:border-zinc-800"
                 }`}
               >
@@ -347,7 +349,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                     </div>
                     <div>
                       <p className="text-[9px] text-zinc-400 uppercase font-bold">Valor do Frete</p>
-                      <p className="text-zinc-900 dark:text-zinc-100 font-black mt-0.5">{formatCurrency(r.totalValue)}</p>
+                      <p className="text-zinc-900 dark:text-zinc-100 font-bold mt-0.5">{formatCurrency(r.totalValue)}</p>
                     </div>
                   </div>
                 </div>
@@ -361,7 +363,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
               </div>
             );
           }) : (
-            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800">
+            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <Compass className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3 animate-pulse" />
               <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">Nenhuma transporte registrado</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Clique em "Nova Operação" e use o Roteirizador de Preços.</p>
@@ -371,7 +373,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
 
         {/* Detailed operational log & status workflow panel */}
         {selectedRequest && (
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
             <button 
               onClick={() => setSelectedRequest(null)}
               className="absolute right-4 top-4 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-850"
@@ -379,7 +381,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-black text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
               <Compass className="w-5 h-5 text-brand" /> Auditoria de Operação
             </h3>
 
@@ -387,9 +389,9 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-zinc-400 font-bold uppercase">Cliente Contratante</p>
-                  <p className="font-black text-sm text-zinc-900 dark:text-zinc-100 mt-0.5">{selectedRequest.clientName}</p>
+                  <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100 mt-0.5">{selectedRequest.clientName}</p>
                 </div>
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusBadge(selectedRequest.status).color}`}>
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(selectedRequest.status).color}`}>
                   {getStatusBadge(selectedRequest.status).label}
                 </span>
               </div>
@@ -508,7 +510,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                     <span>Pedágios / Custos de Rodovia:</span>
                     <span>{formatCurrency(selectedRequest.tollCost)}</span>
                   </div>
-                  <div className="flex justify-between font-black text-sm text-emerald-600 dark:text-emerald-400 pt-1.5 border-t border-emerald-100/20">
+                  <div className="flex justify-between font-bold text-sm text-emerald-600 dark:text-emerald-400 pt-1.5 border-t border-emerald-100/20">
                     <span>Valor Total Faturado:</span>
                     <span>{formatCurrency(selectedRequest.totalValue)}</span>
                   </div>
@@ -521,6 +523,16 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                   <p className="text-zinc-700 dark:text-zinc-300 font-medium mt-1 leading-relaxed whitespace-pre-wrap">{selectedRequest.observations}</p>
                 </div>
               )}
+
+              <button
+                onClick={async () => {
+                  const client = records.find(r => r.type === 'client' && r.id === selectedRequest.clientId) as Client | undefined;
+                  await downloadQuotePdf(selectedRequest, client, config);
+                }}
+                className="w-full py-2.5 bg-brand hover:bg-brand-dark text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Baixar orçamento em PDF
+              </button>
 
               <div className="flex gap-2 pt-2">
                 <button 
@@ -555,7 +567,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono">ROTEIRIZADOR INTELIGENTE</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingRequest ? 'Editar Operação' : 'Nova Operação / Cotação Inteligente'}
                 </h3>
                 <p className="text-xs text-zinc-400">Utilize nossa calculadora dinâmica integrada para estimar frete com seguro automático.</p>
@@ -626,7 +638,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                 </div>
 
                 {/* 3. Intelligent Calculator widget */}
-                <div className="bg-blue-50/50 dark:bg-blue-950/10 p-5 rounded-3xl border border-blue-100/30 space-y-4">
+                <div className="bg-blue-50/50 dark:bg-blue-950/10 p-5 rounded-2xl border border-blue-100/30 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-brand uppercase flex items-center gap-1.5 font-mono">
                       <Calculator className="w-4 h-4 text-brand" /> Simulador de Custo Logístico
@@ -693,7 +705,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Valor da Carga (Apólice R$)</label>
-                      <p className="px-3 py-2 bg-zinc-100 dark:bg-zinc-850 rounded-xl text-sm font-black text-zinc-700 dark:text-zinc-300 font-mono">
+                      <p className="px-3 py-2 bg-zinc-100 dark:bg-zinc-850 rounded-xl text-sm font-bold text-zinc-700 dark:text-zinc-300 font-mono">
                         {formatCurrency(calcVehicleValue)}
                       </p>
                     </div>
@@ -715,7 +727,7 @@ export function TransportRequestsView({ records, onAdd, onUpdate, onDelete }: Tr
                     </div>
                     <div className="p-2 bg-blue-600 rounded-xl text-white">
                       <p className="text-[9px] text-blue-100 font-bold uppercase">Preço Estimado</p>
-                      <p className="text-xs font-black">{formatCurrency(formData.totalValue)}</p>
+                      <p className="text-xs font-bold">{formatCurrency(formData.totalValue)}</p>
                     </div>
                   </div>
                 </div>

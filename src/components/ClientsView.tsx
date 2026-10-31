@@ -120,7 +120,7 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
     <div className="space-y-6 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Clientes</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Clientes</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Gerenciamento completo dos clientes atendidos pela empresa.</p>
         </div>
         <button 
@@ -146,7 +146,7 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-500 uppercase">Total de Clientes</span>
-          <span className="text-xl font-black text-brand">{clients.length}</span>
+          <span className="text-xl font-bold text-brand">{clients.length}</span>
         </div>
       </div>
 
@@ -158,14 +158,14 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
             <div 
               key={c.id} 
               onClick={() => setSelectedClient(c)}
-              className={`p-5 bg-white dark:bg-zinc-900 rounded-3xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
+              className={`p-5 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
                 selectedClient?.id === c.id ? "border-brand ring-2 ring-brand/10" : "border-zinc-200 dark:border-zinc-800"
               }`}
             >
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-850 text-zinc-600 dark:text-zinc-300 rounded-2xl flex items-center justify-center font-black text-lg">
+                    <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-850 text-zinc-600 dark:text-zinc-300 rounded-2xl flex items-center justify-center font-bold text-lg">
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -216,7 +216,7 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
               </div>
             </div>
           )) : (
-            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800">
+            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <User className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3" />
               <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">Nenhum cliente cadastrado</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Busque outra palavra-chave ou cadastre um novo cliente.</p>
@@ -226,7 +226,7 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
 
         {/* Selected Client Side Panel / Ficha Detalhada */}
         {selectedClient && (
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
             <button 
               onClick={() => setSelectedClient(null)}
               className="absolute right-4 top-4 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-850"
@@ -234,17 +234,17 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-black text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
               <Clipboard className="w-5 h-5 text-brand" /> Ficha do Cliente
             </h3>
 
             <div className="space-y-6">
               <div className="flex items-center gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center font-black text-xl">
+                <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center font-bold text-xl">
                   {selectedClient.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h4 className="font-black text-zinc-900 dark:text-zinc-100 text-base">{selectedClient.name}</h4>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">{selectedClient.name}</h4>
                   <span className="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-1 inline-block">
                     {selectedClient.cpfCnpj.length > 14 ? 'CNPJ' : 'CPF'}
                   </span>
@@ -335,7 +335,7 @@ export function ClientsView({ records, onAdd, onUpdate, onDelete }: ClientsViewP
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono">CADASTRO</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
                 </h3>
                 <p className="text-xs text-zinc-400">Preencha os dados abaixo com cuidado. Estes dados serão usados na geração dos contratos automáticos.</p>

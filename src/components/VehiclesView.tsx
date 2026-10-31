@@ -116,7 +116,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
     <div className="space-y-6 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Veículos Transportados</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Veículos Transportados</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Cadastre e gerencie a carteira de veículos dos clientes que necessitam de transporte.</p>
         </div>
         <button 
@@ -142,7 +142,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-500 uppercase">Veículos Ativos</span>
-          <span className="text-xl font-black text-brand">{vehicles.length}</span>
+          <span className="text-xl font-bold text-brand">{vehicles.length}</span>
         </div>
       </div>
 
@@ -154,7 +154,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
             <div 
               key={v.id} 
               onClick={() => setSelectedVehicle(v)}
-              className={`p-5 bg-white dark:bg-zinc-900 rounded-3xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
+              className={`p-5 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
                 selectedVehicle?.id === v.id ? "border-brand ring-2 ring-brand/10" : "border-zinc-200 dark:border-zinc-800"
               }`}
             >
@@ -212,7 +212,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
               </div>
             </div>
           )) : (
-            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800">
+            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <Car className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3 animate-pulse" />
               <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">Nenhum veículo cadastrado</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Busque outra palavra-chave ou cadastre um novo veículo de cliente.</p>
@@ -222,7 +222,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
 
         {/* Vehicle Ficha Detalhada Sidepanel */}
         {selectedVehicle && (
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
             <button 
               onClick={() => setSelectedVehicle(null)}
               className="absolute right-4 top-4 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-850"
@@ -230,7 +230,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-black text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
               <PenTool className="w-5 h-5 text-brand" /> Ficha do Veículo
             </h3>
 
@@ -246,7 +246,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
                   <Car className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-black text-zinc-900 dark:text-zinc-100 text-base">{selectedVehicle.brand} {selectedVehicle.model}</h4>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">{selectedVehicle.brand} {selectedVehicle.model}</h4>
                   <span className="px-2 py-0.5 rounded bg-brand text-white text-[10px] font-mono font-bold uppercase tracking-widest mt-1 inline-block">
                     {selectedVehicle.plate}
                   </span>
@@ -293,7 +293,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
 
                 <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
                   <p className="text-[10px] text-zinc-400 font-bold uppercase">Valor de Mercado do Veículo</p>
-                  <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{formatCurrency(selectedVehicle.value)}</p>
+                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{formatCurrency(selectedVehicle.value)}</p>
                   <p className="text-[9px] text-zinc-400 leading-normal mt-1">Este valor é utilizado como base de cálculo para a apólice de seguro obrigatório de cargas.</p>
                 </div>
 
@@ -338,7 +338,7 @@ export function VehiclesView({ records, onAdd, onUpdate, onDelete }: VehiclesVie
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono font-bold">CADASTRO</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingVehicle ? 'Editar Veículo' : 'Novo Veículo Transportado'}
                 </h3>
                 <p className="text-xs text-zinc-400">Preencha as características e números de identificação do veículo do cliente.</p>

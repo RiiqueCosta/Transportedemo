@@ -1,17 +1,17 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { supabase } from './lib/supabase';
+import type { AppRecord, AppConfig, Profile } from './types';
 
-import { useState, useEffect } from 'react';
-import { AppRecord, AppConfig } from './types';
+const DEMO_RECORDS = 'cargova_demo_records';
+const DEMO_CONFIG = 'cargova_demo_config';
+const THEME_KEY = 'cargova_theme';
 
-const DEFAULT_CONFIG: AppConfig = {
-  companyName: 'TransporteDemo Logística',
-  companyPhone: '(11) 98525-8655',
-  companyEmail: 'contato@transportedemo.com',
-  companyCnpj: '59.914.130/0001-82',
-  theme: 'light',
+export const DEFAULT_CONFIG: AppConfig = {
+  companyName: 'Minha Transportadora',
+  companyPhone: '',
+  companyEmail: '',
+  companyCnpj: '',
+  theme: 'dark',
   nextContractNumber: 1,
   valuePerKm: 4.50,
   defaultInsurance: 150.00,
@@ -35,56 +35,196 @@ Cláusula 4ª - Prazo: O prazo estimado para a conclusão segura do serviço de 
 São Paulo, [DATA_CONTRATO].`
 };
 
-export function useData(user: any) {
-  const [records, setRecords] = useState<AppRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('transport_records');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error('Failed to parse records from localStorage:', e);
-      return [];
-    }
-  });
 
-  const [config, setConfig] = useState<AppConfig>(() => {
-    try {
-      const saved = localStorage.getItem('transport_config');
-      return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
-    } catch (e) {
-      console.error('Failed to parse config from localStorage:', e);
-      return DEFAULT_CONFIG;
-    }
-  });
+function rowToRecord(row: any): AppRecord {
+  return {
+    ...(row.data || {}),
+    id: row.id,
+    type: row.type,
+    dateCreated: row.data?.dateCreated || row.created_at,
+  } as AppRecord;
+}
 
-  const [role] = useState<'admin' | 'collaborator'>('admin');
-  const [ownerUid] = useState<string>('local_owner');
-  const [isApproved] = useState<boolean>(true);
+function recordToRow(record: AppRecord) {
+  const { id, type, ...data } = record as any;
+  return { id, type, data };
+}
 
+function readLocal<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function loadTheme(): 'light' | 'dark' {
+  return readLocal<string>(THEME_KEY, 'dark') === 'light' ? 'light' : 'dark';
+}
+
+/**
+ * Dados do sistema. Com Supabase lê/grava na nuvem e atualiza em tempo real;
+ * no modo demonstração usa o armazenamento do navegador.
+ */
+export function useData(profile: Profile | null) {
+  const [records, setRecords] = useState<AppRecord[]>([]);
+  const [config, setConfigState] = useState<AppConfig>({ ...DEFAULT_CONFIG, theme: loadTheme() });
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const configRef = useRef(config);
+  configRef.current = config;
+
+  const isDemo = !supabase;
+
+  // Carga inicial
   useEffect(() => {
-    localStorage.setItem('transport_records', JSON.stringify(records));
-  }, [records]);
+    if (!profile || !profile.approved) {
+      setRecords([]);
+      setIsLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    setIsLoaded(false);
 
+    if (isDemo) {
+      let recs = readLocal<AppRecord[]>(DEMO_RECORDS, []);
+      if (profile.role === 'motorista') recs = recs.filter((r) => r.type === 'transport_request');
+      setRecords(recs);
+      setConfigState({ ...DEFAULT_CONFIG, ...readLocal(DEMO_CONFIG, {}), theme: loadTheme() });
+      setIsLoaded(true);
+      return;
+    }
+
+    (async () => {
+      const [recRes, setRes] = await Promise.all([
+        supabase!.from('records').select('*').order('created_at', { ascending: false }),
+        supabase!.from('settings').select('data').eq('id', 1).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      if (recRes.error) setError('Não foi possível carregar os dados: ' + recRes.error.message);
+      setRecords((recRes.data || []).map(rowToRecord));
+      setConfigState({ ...DEFAULT_CONFIG, ...(setRes.data?.data || {}), theme: loadTheme() });
+      setIsLoaded(true);
+    })();
+
+    // Tempo real: outras pessoas alterando dados
+    const channel = supabase!
+      .channel('records-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, (payload: any) => {
+        setRecords((prev) => {
+          if (payload.eventType === 'DELETE') return prev.filter((r) => r.id !== payload.old.id);
+          const rec = rowToRecord(payload.new);
+          const exists = prev.some((r) => r.id === rec.id);
+          return exists ? prev.map((r) => (r.id === rec.id ? rec : r)) : [rec, ...prev];
+        });
+      })
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase!.removeChannel(channel);
+    };
+  }, [profile?.id, profile?.approved, profile?.role, isDemo]);
+
+  // Persistência do modo demonstração
   useEffect(() => {
-    localStorage.setItem('transport_config', JSON.stringify(config));
-  }, [config]);
+    if (isDemo && isLoaded && profile?.role !== 'motorista') {
+      localStorage.setItem(DEMO_RECORDS, JSON.stringify(records));
+    }
+  }, [records, isDemo, isLoaded, profile?.role]);
+
+  const stamp = () => ({
+    lastUpdatedBy: profile?.id,
+    lastUpdatedByName: profile?.name,
+  });
 
   const addRecord = async (record: AppRecord) => {
-    const finalRecord = { 
-      ...record, 
-      ownerId: ownerUid,
-      createdBy: 'local_user',
-      createdByName: 'Administrador'
-    };
-    setRecords(prev => [finalRecord, ...prev]);
+    const finalRecord = {
+      ...record,
+      ownerId: 'company',
+      createdBy: profile?.id,
+      createdByName: profile?.name,
+      dateCreated: record.dateCreated || new Date().toISOString(),
+    } as AppRecord;
+    setRecords((prev) => [finalRecord, ...prev]);
+    if (!isDemo) {
+      const { error } = await supabase!.from('records').insert(recordToRow(finalRecord));
+      if (error) {
+        setRecords((prev) => prev.filter((r) => r.id !== finalRecord.id));
+        alert('Erro ao salvar: ' + error.message);
+      }
+    }
   };
 
-  const updateRecord = async (id: string, updatedRecord: Partial<AppRecord>) => {
-    setRecords(prev => prev.map(r => r.id === id ? { ...r, ...updatedRecord } as AppRecord : r));
+  const updateRecord = async (id: string, changes: Partial<AppRecord>) => {
+    const current = records.find((r) => r.id === id);
+    if (!current) return;
+    const updated = { ...current, ...changes, ...stamp() } as AppRecord;
+    setRecords((prev) => prev.map((r) => (r.id === id ? updated : r)));
+    if (!isDemo) {
+      const { error } = await supabase!.from('records').update({ data: recordToRow(updated).data }).eq('id', id);
+      if (error) {
+        setRecords((prev) => prev.map((r) => (r.id === id ? current : r)));
+        alert('Erro ao atualizar: ' + error.message);
+      }
+    }
   };
 
   const deleteRecord = async (id: string) => {
-    setRecords(prev => prev.filter(r => r.id !== id));
+    const current = records.find((r) => r.id === id);
+    setRecords((prev) => prev.filter((r) => r.id !== id));
+    if (!isDemo) {
+      const { error } = await supabase!.from('records').delete().eq('id', id);
+      if (error && current) {
+        setRecords((prev) => [current, ...prev]);
+        alert('Erro ao excluir: ' + error.message);
+      }
+    }
   };
+
+  /** Motorista atualiza só o status da própria viagem */
+  const updateTripStatus = async (id: string, status: 'collected' | 'in_transit' | 'delivered') => {
+    const current = records.find((r) => r.id === id);
+    if (!current) return;
+    setRecords((prev) => prev.map((r) => (r.id === id ? ({ ...r, status } as AppRecord) : r)));
+    if (isDemo) {
+      const all = readLocal<AppRecord[]>(DEMO_RECORDS, []);
+      localStorage.setItem(
+        DEMO_RECORDS,
+        JSON.stringify(all.map((r) => (r.id === id ? { ...r, status } : r))),
+      );
+      return;
+    }
+    const { error } = await supabase!.rpc('driver_update_status', { record_id: id, new_status: status });
+    if (error) {
+      setRecords((prev) => prev.map((r) => (r.id === id ? current : r)));
+      alert('Erro ao atualizar status: ' + error.message);
+    }
+  };
+
+  /** Mesma assinatura de um setState do React */
+  const setConfig = useCallback(
+    (update: AppConfig | ((prev: AppConfig) => AppConfig)) => {
+      const prev = configRef.current;
+      const next = typeof update === 'function' ? update(prev) : update;
+      setConfigState(next);
+      if (next.theme !== prev.theme) localStorage.setItem(THEME_KEY, next.theme);
+      const { theme, ...shared } = next;
+      const { theme: _t, ...prevShared } = prev;
+      if (JSON.stringify(shared) === JSON.stringify(prevShared)) return;
+      if (isDemo) {
+        localStorage.setItem(DEMO_CONFIG, JSON.stringify(shared));
+      } else if (profile?.role === 'admin') {
+        supabase!
+          .from('settings')
+          .update({ data: shared, updated_at: new Date().toISOString() })
+          .eq('id', 1)
+          .then(({ error }) => error && alert('Erro ao salvar configurações: ' + error.message));
+      }
+    },
+    [isDemo, profile?.role],
+  );
 
   return {
     records,
@@ -93,10 +233,8 @@ export function useData(user: any) {
     addRecord,
     updateRecord,
     deleteRecord,
-    isLoaded: true,
-    role,
-    ownerUid,
-    isApproved,
+    updateTripStatus,
+    isLoaded,
+    error,
   };
 }
-

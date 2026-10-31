@@ -116,18 +116,18 @@ export function DashboardView({ records }: DashboardViewProps) {
     <div className="space-y-8 fade-in">
       {/* Header section */}
       <div>
-        <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Painel Operacional</h2>
+        <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Painel Operacional</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Status em tempo real das frotas, motoristas, coletas e faturamento logístico.</p>
       </div>
 
       {/* Main bento KPIs grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Faturamento Mensal */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Faturamento ({now.toLocaleDateString('pt-BR', { month: 'short' })})</p>
-              <h4 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{formatCurrency(faturamentoMes)}</h4>
+              <h4 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{formatCurrency(faturamentoMes)}</h4>
             </div>
             <div className="p-3 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-2xl">
               <Wallet className="w-6 h-6" />
@@ -139,11 +139,11 @@ export function DashboardView({ records }: DashboardViewProps) {
         </div>
 
         {/* Card 2: Valor a receber */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Valor a Receber</p>
-              <h4 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1 text-emerald-600 dark:text-emerald-400">{formatCurrency(valorAReceber)}</h4>
+              <h4 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1 text-emerald-600 dark:text-emerald-400">{formatCurrency(valorAReceber)}</h4>
             </div>
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-2xl">
               <TrendingUp className="w-6 h-6" />
@@ -155,11 +155,11 @@ export function DashboardView({ records }: DashboardViewProps) {
         </div>
 
         {/* Card 3: Frota status summary */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Operações Ativas</p>
-              <h4 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{transportesEmAndamento} <span className="text-xs font-medium text-zinc-400">em viagem</span></h4>
+              <h4 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{transportesEmAndamento} <span className="text-xs font-medium text-zinc-400">em viagem</span></h4>
             </div>
             <div className="p-3 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-2xl">
               <Truck className="w-6 h-6" />
@@ -172,11 +172,11 @@ export function DashboardView({ records }: DashboardViewProps) {
         </div>
 
         {/* Card 4: Motoristas Disponíveis */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Motoristas</p>
-              <h4 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-1">{motoristasDisponiveis} <span className="text-xs font-medium text-zinc-400">disponíveis</span></h4>
+              <h4 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{motoristasDisponiveis} <span className="text-xs font-medium text-zinc-400">disponíveis</span></h4>
             </div>
             <div className="p-3 bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 rounded-2xl">
               <UserCheck className="w-6 h-6" />
@@ -192,30 +192,30 @@ export function DashboardView({ records }: DashboardViewProps) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-150 dark:border-zinc-800/60 text-center">
           <p className="text-[10px] font-bold text-zinc-400 uppercase">Transportes Agendados</p>
-          <p className="text-2xl font-black text-blue-600 mt-1">{transportesAgendados}</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{transportesAgendados}</p>
         </div>
         <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-150 dark:border-zinc-800/60 text-center">
           <p className="text-[10px] font-bold text-zinc-400 uppercase">Em Transporte</p>
-          <p className="text-2xl font-black text-amber-500 mt-1">{transportesEmAndamento}</p>
+          <p className="text-2xl font-bold text-amber-500 mt-1">{transportesEmAndamento}</p>
         </div>
         <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-150 dark:border-zinc-800/60 text-center">
           <p className="text-[10px] font-bold text-zinc-400 uppercase">Entregues / Concluídos</p>
-          <p className="text-2xl font-black text-emerald-500 mt-1">{transportesFinalizados}</p>
+          <p className="text-2xl font-bold text-emerald-500 mt-1">{transportesFinalizados}</p>
         </div>
         <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-150 dark:border-zinc-800/60 text-center">
           <p className="text-[10px] font-bold text-zinc-400 uppercase">Contratos Ativos</p>
-          <p className="text-2xl font-black text-zinc-700 dark:text-zinc-200 mt-1">{contratosAtivos}</p>
+          <p className="text-2xl font-bold text-zinc-700 dark:text-zinc-200 mt-1">{contratosAtivos}</p>
         </div>
         <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-150 dark:border-zinc-800/60 col-span-2 md:col-span-1 text-center">
           <p className="text-[10px] font-bold text-zinc-400 uppercase">Clientes Cadastrados</p>
-          <p className="text-2xl font-black text-indigo-500 mt-1">{totalClientes}</p>
+          <p className="text-2xl font-bold text-indigo-500 mt-1">{totalClientes}</p>
         </div>
       </div>
 
       {/* Charts section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Evolution Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand" /> Fluxo Financeiro (Mensal)
@@ -259,7 +259,7 @@ export function DashboardView({ records }: DashboardViewProps) {
         </div>
 
         {/* Fleet Distribution Pie Chart */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between">
           <div>
             <h3 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <Compass className="w-5 h-5 text-brand" /> Distribuição da Frota
@@ -287,7 +287,7 @@ export function DashboardView({ records }: DashboardViewProps) {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-2xl font-black text-zinc-800 dark:text-zinc-200">{fleet.length}</span>
+              <span className="text-2xl font-bold text-zinc-800 dark:text-zinc-200">{fleet.length}</span>
               <span className="text-[9px] font-bold text-zinc-400 uppercase">Frota Total</span>
             </div>
           </div>
@@ -316,7 +316,7 @@ export function DashboardView({ records }: DashboardViewProps) {
       {/* Operational Events List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Next collections */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
             <h3 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <Clock className="w-4.5 h-4.5 text-blue-500" /> Próximas Coletas (Agendados)
@@ -328,14 +328,14 @@ export function DashboardView({ records }: DashboardViewProps) {
             {proximasColetas.length > 0 ? proximasColetas.map((col) => (
               <div key={col.id} className="p-3.5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-150 dark:border-zinc-850/50 flex items-center justify-between hover:border-brand/30 transition-all">
                 <div className="space-y-1">
-                  <p className="text-xs font-black text-zinc-900 dark:text-zinc-100">{col.clientName}</p>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{col.clientName}</p>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Veículo: {col.vehicleName}</p>
                   <p className="text-[10px] text-zinc-400 dark:text-zinc-500 flex items-center gap-1 font-mono">
                     <span className="font-bold">Rota:</span> {col.origin.split(',')[0]} ➜ {col.destination.split(',')[0]}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="px-2.5 py-1 text-[10px] bg-blue-100/60 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-black rounded-lg inline-block">
+                  <span className="px-2.5 py-1 text-[10px] bg-blue-100/60 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 font-bold rounded-lg inline-block">
                     {col.collectDate ? col.collectDate.split('-').reverse().join('/') : 'A agendar'}
                   </span>
                   <p className="text-[11px] text-zinc-400 font-semibold mt-1.5">{formatCurrency(col.totalValue)}</p>
@@ -350,7 +350,7 @@ export function DashboardView({ records }: DashboardViewProps) {
         </div>
 
         {/* Next deliveries */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
             <h3 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <CheckCircle className="w-4.5 h-4.5 text-emerald-500" /> Próximas Entregas (Em Viagem)
@@ -363,7 +363,7 @@ export function DashboardView({ records }: DashboardViewProps) {
               <div key={del.id} className="p-3.5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-150 dark:border-zinc-850/50 flex items-center justify-between hover:border-brand/30 transition-all">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-black text-zinc-900 dark:text-zinc-100">{del.clientName}</p>
+                    <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{del.clientName}</p>
                     <span className="px-1.5 py-0.2 bg-amber-100 text-amber-700 text-[9px] font-bold rounded uppercase">
                       {del.status === 'collected' ? 'Coletado' : 'Em Rota'}
                     </span>
@@ -374,7 +374,7 @@ export function DashboardView({ records }: DashboardViewProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="px-2.5 py-1 text-[10px] bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 font-black rounded-lg inline-block">
+                  <span className="px-2.5 py-1 text-[10px] bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 font-bold rounded-lg inline-block">
                     Previsão: {del.estimatedDeliveryDate ? del.estimatedDeliveryDate.split('-').reverse().join('/') : 'A definir'}
                   </span>
                   <p className="text-[11px] text-zinc-400 font-semibold mt-1.5">{formatCurrency(del.totalValue)}</p>

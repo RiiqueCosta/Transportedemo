@@ -147,7 +147,7 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
     <div className="space-y-6 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Fluxo Financeiro</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Fluxo Financeiro</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Contas a pagar e receber, demonstrativo de lucros e centros de custos de frete.</p>
         </div>
         <button 
@@ -162,10 +162,10 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
       {/* Financial KPIs row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Receivables */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contas a Receber (Total)</p>
-            <h4 className="text-xl font-black text-blue-600 dark:text-blue-400 mt-1">{formatCurrency(totalReceivables)}</h4>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contas a Receber (Total)</p>
+            <h4 className="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1">{formatCurrency(totalReceivables)}</h4>
             <p className="text-[10px] text-emerald-600 font-semibold mt-1">✓ {formatCurrency(receivedValue)} já recebido</p>
           </div>
           <div className="p-3 bg-blue-50 dark:bg-blue-950/20 text-blue-600 rounded-2xl">
@@ -174,10 +174,10 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
         </div>
 
         {/* Card 2: Payables */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contas a Pagar (Total)</p>
-            <h4 className="text-xl font-black text-red-600 dark:text-red-400 mt-1">{formatCurrency(totalPayables)}</h4>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contas a Pagar (Total)</p>
+            <h4 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">{formatCurrency(totalPayables)}</h4>
             <p className="text-[10px] text-red-500 font-semibold mt-1">✓ {formatCurrency(paidValue)} já liquidado</p>
           </div>
           <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-600 rounded-2xl">
@@ -186,10 +186,10 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
         </div>
 
         {/* Card 3: Real Balance (Cash flow) */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Saldo Real em Caixa</p>
-            <h4 className={`text-xl font-black mt-1 ${cashFlowBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Saldo Real em Caixa</p>
+            <h4 className={`text-xl font-bold mt-1 ${cashFlowBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {formatCurrency(cashFlowBalance)}
             </h4>
             <p className="text-[10px] text-zinc-400 mt-1">Relação (Recebido - Pago)</p>
@@ -201,13 +201,13 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
       </div>
 
       {/* Tabs and search filters */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Tabs */}
           <div className="flex gap-1.5 p-1 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-150 dark:border-zinc-850 w-full sm:w-auto">
             <button
               onClick={() => { setActiveTab('receivable'); setSearchTerm(''); }}
-              className={`flex-1 sm:flex-initial px-5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 activeTab === 'receivable' ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-zinc-500'
               }`}
             >
@@ -215,7 +215,7 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
             </button>
             <button
               onClick={() => { setActiveTab('payable'); setSearchTerm(''); }}
-              className={`flex-1 sm:flex-initial px-5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 activeTab === 'payable' ? 'bg-white dark:bg-zinc-900 text-red-600 dark:text-red-400 shadow-sm' : 'text-zinc-500'
               }`}
             >
@@ -261,13 +261,13 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
                   </td>
                   <td className="p-4 font-mono font-bold text-zinc-500">{f.dueDate ? f.dueDate.split('-').reverse().join('/') : '---'}</td>
                   <td className="p-4 text-zinc-500">{f.clientName || '---'}</td>
-                  <td className={`p-4 text-right font-black text-sm ${f.financeType === 'receivable' ? 'text-blue-600 dark:text-blue-400' : 'text-red-500'}`}>
+                  <td className={`p-4 text-right font-bold text-sm ${f.financeType === 'receivable' ? 'text-blue-600 dark:text-blue-400' : 'text-red-500'}`}>
                     {f.financeType === 'payable' && '- '} {formatCurrency(f.value)}
                   </td>
                   <td className="p-4">
                     <button
                       onClick={() => toggleStatus(f)}
-                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 cursor-pointer ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 cursor-pointer ${
                         f.status === 'paid' 
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' 
                           : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400'
@@ -330,7 +330,7 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8 font-sans">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono">CONCILIAÇÃO FINANCEIRA</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingFinance ? 'Editar Transação' : 'Nova Entrada / Saída de Caixa'}
                 </h3>
                 <p className="text-xs text-zinc-400">Lance entradas ou despesas da operação de transporte de veículos.</p>
@@ -385,7 +385,7 @@ export function FinanceView({ records, onAdd, onUpdate, onDelete }: FinanceViewP
                       value={formData.value || ''}
                       onChange={(e) => setFormData({...formData, value: Number(e.target.value)})}
                       placeholder="Ex: 1500.00"
-                      className="w-full px-4 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100 font-black text-brand"
+                      className="w-full px-4 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100 font-bold text-brand"
                     />
                   </div>
                   <div>

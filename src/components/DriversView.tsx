@@ -130,7 +130,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
     <div className="space-y-6 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Motoristas</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Motoristas</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Cadastre a equipe de condutores habilitados para pilotar os veículos da frota logística.</p>
         </div>
         <button 
@@ -156,11 +156,11 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold text-zinc-500">
           <span>Cadastrados</span>
-          <span className="text-xl font-black text-brand">{drivers.length}</span>
+          <span className="text-xl font-bold text-brand">{drivers.length}</span>
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold text-zinc-500">
           <span>Disponíveis agora</span>
-          <span className="text-xl font-black text-emerald-600">{drivers.filter(d => d.status === 'available').length}</span>
+          <span className="text-xl font-bold text-emerald-600">{drivers.filter(d => d.status === 'available').length}</span>
         </div>
       </div>
 
@@ -174,14 +174,14 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
               <div 
                 key={d.id} 
                 onClick={() => setSelectedDriver(d)}
-                className={`p-5 bg-white dark:bg-zinc-900 rounded-3xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
+                className={`p-5 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
                   selectedDriver?.id === d.id ? "border-brand ring-2 ring-brand/10" : "border-zinc-200 dark:border-zinc-800"
                 }`}
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center font-black text-lg">
+                      <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center font-bold text-lg">
                         {d.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -238,7 +238,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
               </div>
             );
           }) : (
-            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800">
+            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <UserCheck className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3 animate-pulse" />
               <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">Nenhum motorista cadastrado</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Busque outra palavra-chave ou cadastre um novo condutor.</p>
@@ -248,7 +248,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
 
         {/* Selected Driver Detailed Ficha Sidepanel */}
         {selectedDriver && (
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in">
             <button 
               onClick={() => setSelectedDriver(null)}
               className="absolute right-4 top-4 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-850"
@@ -256,17 +256,17 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-black text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
+            <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2 mb-6">
               <Shield className="w-5 h-5 text-brand" /> Registro de Condutor
             </h3>
 
             <div className="space-y-6 text-xs">
               <div className="flex items-center gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-14 h-14 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center font-black text-xl">
+                <div className="w-14 h-14 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center font-bold text-xl">
                   {selectedDriver.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h4 className="font-black text-zinc-900 dark:text-zinc-100 text-base">{selectedDriver.name}</h4>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">{selectedDriver.name}</h4>
                   <span className="px-2.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] text-zinc-500 font-bold uppercase mt-1 inline-block">
                     CNH Categoria {selectedDriver.cnhCategory}
                   </span>
@@ -361,7 +361,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono">CADASTRO</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingDriver ? 'Editar Motorista' : 'Novo Motorista'}
                 </h3>
                 <p className="text-xs text-zinc-400">Preencha as informações pessoais, número de registro CNH e a validade de trânsito.</p>

@@ -8,7 +8,8 @@ import {
   Plus, Search, Edit2, Trash2, FileText, Eye, X, Copy, 
   Printer, Check, ArrowRight, Save, ClipboardList, RefreshCw 
 } from 'lucide-react';
-import { AppRecord, Contract, Client, TransportRequest } from '../types';
+import { AppRecord, AppConfig, Contract, Client, TransportRequest } from '../types';
+import { downloadContractPdf } from '../lib/pdf';
 import { formatCurrency, generateId } from '../lib/utils';
 
 interface ContractsViewProps {
@@ -16,6 +17,7 @@ interface ContractsViewProps {
   onAdd: (record: AppRecord) => void;
   onUpdate: (id: string, record: Partial<AppRecord>) => void;
   onDelete: (id: string) => void;
+  config: AppConfig;
 }
 
 // Default Professional Templates
@@ -58,7 +60,7 @@ O veículo goza de cobertura de seguro Ad Valorem premium específica, cobrindo 
   }
 };
 
-export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsViewProps) {
+export function ContractsView({ records, onAdd, onUpdate, onDelete, config }: ContractsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -213,8 +215,16 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const handlePrint = async () => {
+    if (!selectedContract) return;
+    setPdfLoading(true);
+    try {
+      const client = records.find(r => r.type === 'client' && r.id === selectedContract.clientId) as Client | undefined;
+      await downloadContractPdf(selectedContract, client, config);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const getStatusBadge = (status: Contract['status']) => {
@@ -235,7 +245,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
       {/* Hide on print */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Contratos Comerciais</h2>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Contratos Comerciais</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Gere minutas jurídicas com cláusulas configuráveis para formalização das cargas.</p>
         </div>
         <button 
@@ -261,7 +271,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold text-zinc-500">
           <span>Contratos Emitidos</span>
-          <span className="text-xl font-black text-brand">{contracts.length}</span>
+          <span className="text-xl font-bold text-brand">{contracts.length}</span>
         </div>
       </div>
 
@@ -275,7 +285,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
               <div 
                 key={c.id} 
                 onClick={() => { setSelectedContract(c); setIsPreviewOpen(false); }}
-                className={`p-5 bg-white dark:bg-zinc-900 rounded-3xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
+                className={`p-5 bg-white dark:bg-zinc-900 rounded-2xl border transition-all duration-300 shadow-sm cursor-pointer hover:border-brand/50 flex flex-col justify-between ${
                   selectedContract?.id === c.id ? "border-brand ring-2 ring-brand/10" : "border-zinc-200 dark:border-zinc-800"
                 }`}
               >
@@ -325,13 +335,13 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
 
                   <div className="flex justify-between items-center text-xs pt-3 border-t border-zinc-100 dark:border-zinc-800">
                     <span className="text-zinc-400">Valor do Contrato</span>
-                    <span className="font-black text-zinc-900 dark:text-zinc-100">{formatCurrency(c.value)}</span>
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100">{formatCurrency(c.value)}</span>
                   </div>
                 </div>
               </div>
             );
           }) : (
-            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-3xl border border-zinc-200 dark:border-zinc-800">
+            <div className="col-span-full bg-white dark:bg-zinc-900 py-16 text-center rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <FileText className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3 animate-pulse" />
               <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">Nenhum contrato formalizado</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Crie termos comerciais estruturados para fechamento seguro com seus clientes.</p>
@@ -341,7 +351,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
 
         {/* Selected Contract Preview & Legal Template Panel */}
         {selectedContract && (
-          <div className="xl:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in print:p-0 print:border-none print:shadow-none">
+          <div className="xl:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand/30 dark:border-zinc-800 shadow-lg relative fade-in print:p-0 print:border-none print:shadow-none">
             {/* Hide on print */}
             <button 
               onClick={() => setSelectedContract(null)}
@@ -352,7 +362,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
 
             {/* Actions header - Hide on print */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 print:hidden">
-              <h3 className="font-black text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
+              <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
                 <ClipboardList className="w-5 h-5 text-brand" /> Visualização Legal do Termo
               </h3>
               
@@ -361,7 +371,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
                   onClick={handlePrint}
                   className="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-zinc-200 text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Printer className="w-4 h-4" /> Imprimir / PDF
+                  <Printer className="w-4 h-4" /> {pdfLoading ? 'Gerando...' : 'Baixar PDF'}
                 </button>
               </div>
             </div>
@@ -370,8 +380,8 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
             <div className="space-y-6 max-w-2xl mx-auto bg-zinc-50 dark:bg-zinc-950 p-6 md:p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-250 font-serif leading-relaxed text-xs print:bg-white print:text-black print:p-0 print:border-none">
               {/* Company Logo Header in contract */}
               <div className="text-center pb-6 border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center">
-                <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-brand">TransporteDemo</span>
-                <h2 className="text-sm font-black uppercase mt-1 tracking-wider text-zinc-950 dark:text-white print:text-black">{selectedContract.title}</h2>
+                <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-brand">{config.companyName}</span>
+                <h2 className="text-sm font-bold uppercase mt-1 tracking-wider text-zinc-950 dark:text-white print:text-black">{selectedContract.title}</h2>
                 <p className="text-[10px] text-zinc-400 font-mono mt-1">Nº Registro Eletrônico: {selectedContract.contractNumber}</p>
               </div>
 
@@ -379,7 +389,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
               <div className="space-y-3">
                 <p className="font-bold uppercase text-[10px] tracking-wider border-b border-zinc-100 dark:border-zinc-850 pb-1 text-brand">1. DAS PARTES CONTRATANTES</p>
                 <div className="space-y-1.5 font-sans not-italic text-zinc-700 dark:text-zinc-300 print:text-zinc-800">
-                  <p><strong>CONTRATADA (TRANSPOSIL):</strong> TransporteDemo LTDA, com sede operacional registrada sob regras vigentes, operando no segmento logístico de veículos.</p>
+                  <p><strong>CONTRATADA:</strong> {config.companyName}{config.companyCnpj ? `, CNPJ ${config.companyCnpj}` : ''}.</p>
                   <p><strong>CONTRATANTE (CLIENTE):</strong> {selectedContract.clientName} (Vínculo Cadastral ID: {selectedContract.clientId}).</p>
                 </div>
               </div>
@@ -406,7 +416,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
               <div className="pt-12 grid grid-cols-2 gap-8 text-center font-sans text-[10px] border-t border-zinc-200 dark:border-zinc-800 mt-12">
                 <div className="space-y-4">
                   <div className="border-b border-zinc-300 dark:border-zinc-700 mx-4 h-6" />
-                  <p className="font-bold">TRANSPORTE DEMO LTDA</p>
+                  <p className="font-bold uppercase">{config.companyName}</p>
                   <p className="text-zinc-400">Representante Legal (Contratada)</p>
                 </div>
                 <div className="space-y-4">
@@ -454,7 +464,7 @@ export function ContractsView({ records, onAdd, onUpdate, onDelete }: ContractsV
             <form onSubmit={handleSubmit} className="space-y-6 flex-1 pb-8">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-brand uppercase tracking-wider font-mono">CONTRATOS E MINUTAS</span>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                   {editingContract ? 'Editar Contrato' : 'Novo Contrato Comercial'}
                 </h3>
                 <p className="text-xs text-zinc-400">Vincule a minuta jurídica a uma operação e configure as cláusulas de responsabilidades.</p>

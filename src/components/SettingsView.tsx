@@ -14,9 +14,9 @@ interface SettingsViewProps {
 
 export function SettingsView({ config, setConfig }: SettingsViewProps) {
   const [formData, setFormData] = useState({
-    companyName: config.companyName || 'TransporteDemo LTDA',
-    companyPhone: config.companyPhone || '(11) 98525-8655',
-    companyEmail: config.companyEmail || 'operacional@transportedemo.com.br',
+    companyName: config.companyName || '',
+    companyPhone: config.companyPhone || '',
+    companyEmail: config.companyEmail || '',
     companyCnpj: config.companyCnpj || '12.345.678/0001-90',
     nextInvoiceNumber: config.nextInvoiceNumber || 1, // Contract numbering or Invoice
     nextQuoteNumber: config.nextQuoteNumber || 1, // Transport Requests
@@ -51,13 +51,13 @@ export function SettingsView({ config, setConfig }: SettingsViewProps) {
   return (
     <div className="space-y-6 fade-in">
       <div>
-        <h2 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Parâmetros de Operação</h2>
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Parâmetros de Operação</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Configure os dados cadastrais da empresa e contadores de controle interno.</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Company Settings Card */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center gap-2.5 border-b border-zinc-100 dark:border-zinc-800 pb-4">
             <Landmark className="w-5 h-5 text-brand" />
             <h3 className="font-bold text-zinc-900 dark:text-zinc-50">Informações Institucionais (Transportadora)</h3>
@@ -73,7 +73,7 @@ export function SettingsView({ config, setConfig }: SettingsViewProps) {
                 value={formData.companyName}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100"
-                placeholder="Ex: TransporteDemo LTDA"
+                placeholder="Ex: Transportes Silva LTDA"
               />
             </div>
             <div>
@@ -99,7 +99,7 @@ export function SettingsView({ config, setConfig }: SettingsViewProps) {
                 value={formData.companyPhone}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100"
-                placeholder="(11) 98525-8655"
+                placeholder="(11) 90000-0000"
               />
             </div>
             <div>
@@ -120,7 +120,7 @@ export function SettingsView({ config, setConfig }: SettingsViewProps) {
         </div>
 
         {/* Numbering Settings Card */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center gap-2.5 border-b border-zinc-100 dark:border-zinc-800 pb-4">
             <Settings className="w-5 h-5 text-brand" />
             <h3 className="font-bold text-zinc-900 dark:text-zinc-50">Sequência Eletrônica de Controle</h3>
@@ -174,7 +174,7 @@ export function SettingsView({ config, setConfig }: SettingsViewProps) {
           <button
             type="submit"
             disabled={savedStatus === 'saving'}
-            className="px-6 py-3.5 bg-brand hover:bg-brand-dark text-white rounded-xl font-bold text-sm shadow-md shadow-brand/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-6 py-3.5 bg-brand hover:bg-brand-dark text-white rounded-xl font-bold text-sm shadow-glow transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             Salvar Alterações

@@ -3,7 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type RecordType = 
+export type Role = 'admin' | 'operador' | 'motorista';
+
+export interface Profile {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  approved: boolean;
+  driverId?: string | null;
+}
+
+export type RecordType =
   | 'client' 
   | 'vehicle_transported' 
   | 'fleet' 

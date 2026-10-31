@@ -1,217 +1,199 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState, useEffect } from 'react';
-import { UserPlus, Shield, Trash2, Mail, Calendar, Key } from 'lucide-react';
-import { formatCurrency, formatDate } from '../lib/utils';
-
-interface AllowedUser {
-  email: string;
-  role: 'collaborator' | 'admin';
-  addedAt: string;
-  ownerUid: string;
-}
+import React, { useEffect, useState } from 'react';
+import { ShieldCheck, Check, Trash2, RefreshCw, Clock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { ROLE_LABEL } from '../lib/permissions';
+import type { Driver, Profile, Role } from '../types';
+import { Avatar } from './Navigation';
+import { cn } from '../lib/utils';
 
 interface AdminViewProps {
-  ownerUid: string;
+  me: Profile;
+  drivers: Driver[];
 }
 
-export function AdminView({ ownerUid }: AdminViewProps) {
-  const [allowedUsers, setAllowedUsers] = useState<AllowedUser[]>([]);
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'collaborator' | 'admin'>('collaborator');
+const selectCls =
+  'px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-800 dark:text-zinc-200 focus:ring-2 focus:ring-brand/50 outline-none';
+
+export function AdminView({ me, drivers }: AdminViewProps) {
+  const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('transport_allowed_users');
-      if (saved) {
-        setAllowedUsers(JSON.parse(saved));
-      } else {
-        const defaultList: AllowedUser[] = [
-          {
-            email: 'luizcosta8604@gmail.com',
-            role: 'admin',
-            addedAt: new Date().toISOString(),
-            ownerUid: 'local_owner'
-          }
-        ];
-        localStorage.setItem('transport_allowed_users', JSON.stringify(defaultList));
-        setAllowedUsers(defaultList);
-      }
-    } catch (e) {
-      console.error('Error loading allowed users:', e);
-    }
-    setLoading(false);
-  }, []);
-
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-
-    setSubmitting(true);
-    const targetEmail = email.toLowerCase().trim();
-
-    try {
-      const payload: AllowedUser = {
-        email: targetEmail,
-        role,
-        addedAt: new Date().toISOString(),
-        ownerUid: 'local_owner'
-      };
-
-      const newList = [payload, ...allowedUsers.filter(u => u.email !== targetEmail)];
-      localStorage.setItem('transport_allowed_users', JSON.stringify(newList));
-      setAllowedUsers(newList);
-      setEmail('');
-      setRole('collaborator');
-    } catch (error) {
-      alert('Erro ao convidar usuário.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (targetEmail: string) => {
-    if (!confirm(`Tem certeza que deseja revogar o acesso de "${targetEmail}"?`)) {
+  const load = async () => {
+    if (!supabase) {
+      setLoading(false);
       return;
     }
-
-    try {
-      const newList = allowedUsers.filter(u => u.email !== targetEmail);
-      localStorage.setItem('transport_allowed_users', JSON.stringify(newList));
-      setAllowedUsers(newList);
-    } catch (error) {
-      alert('Erro ao remover usuário.');
-    }
+    setLoading(true);
+    const { data, error } = await supabase.from('profiles').select('*').order('created_at');
+    if (error) setError(error.message);
+    setUsers(
+      (data || []).map((r: any) => ({
+        id: r.id,
+        email: r.email,
+        name: r.name || r.email,
+        role: r.role,
+        approved: r.approved,
+        driverId: r.driver_id,
+      })),
+    );
+    setLoading(false);
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 md:p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <span className="px-2.5 py-1 rounded-full bg-brand/10 text-brand text-xs font-bold uppercase tracking-wider font-mono">
-              Painel do Administrador
-            </span>
-            <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-zinc-50 mt-2 tracking-tight">
-              Permissões e Colaboradores
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              Gerencie quem pode acessar e colaborar nas solicitações de transporte, frotas e relatórios operacionais associados a sua conta.
-            </p>
-          </div>
-        </div>
+  useEffect(() => {
+    load();
+  }, []);
 
-        {/* Invite Form */}
-        <form onSubmit={handleInvite} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl">
-          <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-2">E-mail do Colaborador (Google Account)</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-              <input
-                required
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="exemplo@gmail.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-2">Nível de Acesso (Cargo)</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as any)}
-              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-100"
-            >
-              <option value="collaborator">Colaborador (Read / Write)</option>
-              <option value="admin">Administrador (Total)</option>
-            </select>
-          </div>
-          <div className="md:col-span-3 pt-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full md:w-auto px-6 py-3 bg-brand hover:bg-brand-dark text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-brand/10 disabled:opacity-50 cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              {submitting ? 'Convidando...' : 'Convidar e Autorizar'}
-            </button>
-          </div>
-        </form>
+  const update = async (id: string, changes: Record<string, unknown>) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('profiles').update(changes).eq('id', id);
+    if (error) alert('Erro: ' + error.message);
+    load();
+  };
+
+  const remove = async (u: Profile) => {
+    if (!supabase || !confirm(`Remover o acesso de ${u.email}?`)) return;
+    const { error } = await supabase.from('profiles').delete().eq('id', u.id);
+    if (error) alert('Erro: ' + error.message);
+    load();
+  };
+
+  if (!supabase) {
+    return (
+      <div className="max-w-2xl rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8">
+        <ShieldCheck className="w-10 h-10 text-brand mb-4" />
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Usuários e acessos</h2>
+        <p className="text-sm text-zinc-500 mt-2 leading-relaxed">
+          No modo demonstração não há contas de verdade. Quando o sistema estiver ligado ao banco de dados, cada pessoa cria a própria conta e
+          aparece aqui para você liberar e escolher a função: <b>Administrador</b> (tudo), <b>Operador</b> (operação, sem financeiro e
+          configurações) ou <b>Motorista</b> (só vê e atualiza as próprias viagens).
+        </p>
+      </div>
+    );
+  }
+
+  const pending = users.filter((u) => !u.approved);
+  const active = users.filter((u) => u.approved);
+
+  return (
+    <div className="space-y-6 fade-in">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Usuários e acessos</h2>
+          <p className="text-sm text-zinc-500 mt-1">
+            Novas contas aparecem aqui para aprovação. Motoristas precisam ser vinculados ao cadastro de motorista para ver as viagens.
+          </p>
+        </div>
+        <button onClick={load} className="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer" title="Atualizar">
+          <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+        </button>
       </div>
 
-      {/* Collaborator List */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-zinc-100 dark:border-zinc-800">
-          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">Usuários Autorizados</h3>
-        </div>
+      {error && <div className="p-3 rounded-xl bg-red-500/10 text-sm text-red-500">{error}</div>}
 
-        {loading ? (
-          <div className="p-8 text-center flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 border-3 border-brand border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-zinc-500">Buscando colaboradores autorizados...</p>
+      {pending.length > 0 && (
+        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+          <h3 className="px-5 py-3 text-sm font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2 border-b border-amber-500/20">
+            <Clock className="w-4 h-4" /> Aguardando aprovação ({pending.length})
+          </h3>
+          <div className="divide-y divide-amber-500/10">
+            {pending.map((u) => (
+              <UserRow key={u.id} u={u} me={me} drivers={drivers} onUpdate={update} onRemove={remove} />
+            ))}
           </div>
-        ) : allowedUsers.length === 0 ? (
-          <div className="p-12 text-center text-zinc-500 dark:text-zinc-400">
-            <Shield className="w-12 h-12 mx-auto text-zinc-300 dark:text-zinc-700 mb-3" />
-            <p className="font-bold text-zinc-800 dark:text-zinc-200">Nenhum colaborador adicionado</p>
-            <p className="text-xs mt-1">Convide outros usuários do Gmail para compartilharem o painel de gestão.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800">
-                  <th className="p-4 px-6">Email Autorizado</th>
-                  <th className="p-4 px-6">Cargo</th>
-                  <th className="p-4 px-6">Adicionado Em</th>
-                  <th className="p-4 px-6 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80 text-sm text-zinc-700 dark:text-zinc-300">
-                {allowedUsers.map((userSnap) => (
-                  <tr key={userSnap.email} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-all font-medium">
-                    <td className="p-4 px-6 font-semibold text-zinc-900 dark:text-zinc-100">
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-zinc-400" />
-                        <span>{userSnap.email}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 px-6">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                        userSnap.role === 'admin' 
-                          ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400' 
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
-                      }`}>
-                        {userSnap.role}
-                      </span>
-                    </td>
-                    <td className="p-4 px-6 text-xs text-zinc-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>{formatDate(userSnap.addedAt)}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 px-6 text-right">
-                      <button
-                        onClick={() => handleDelete(userSnap.email)}
-                        className="p-1 px-3 rounded-lg border border-red-200 dark:border-red-900/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/25 flex items-center gap-1.5 ml-auto text-xs font-bold transition-all cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Remover
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        </section>
+      )}
+
+      <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+        <h3 className="px-5 py-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800">
+          Com acesso ({active.length})
+        </h3>
+        <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          {active.map((u) => (
+            <UserRow key={u.id} u={u} me={me} drivers={drivers} onUpdate={update} onRemove={remove} />
+          ))}
+          {!loading && active.length === 0 && <p className="p-5 text-sm text-zinc-500">Ninguém por aqui ainda.</p>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function UserRow({
+  u,
+  me,
+  drivers,
+  onUpdate,
+  onRemove,
+}: {
+  u: Profile;
+  me: Profile;
+  drivers: Driver[];
+  onUpdate: (id: string, changes: Record<string, unknown>) => void;
+  onRemove: (u: Profile) => void;
+}) {
+  const isMe = u.id === me.id;
+  return (
+    <div className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-3">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <Avatar name={u.name} size="sm" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+            {u.name} {isMe && <span className="text-xs font-normal text-zinc-400">(você)</span>}
+          </p>
+          <p className="text-xs text-zinc-500 truncate">{u.email}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={u.role}
+          disabled={isMe}
+          onChange={(e) => onUpdate(u.id, { role: e.target.value as Role })}
+          className={selectCls}
+        >
+          {(['admin', 'operador', 'motorista'] as Role[]).map((r) => (
+            <option key={r} value={r}>
+              {ROLE_LABEL[r]}
+            </option>
+          ))}
+        </select>
+
+        {u.role === 'motorista' && (
+          <select
+            value={u.driverId || ''}
+            onChange={(e) => onUpdate(u.id, { driver_id: e.target.value || null })}
+            className={selectCls}
+          >
+            <option value="">Vincular ao motorista…</option>
+            {drivers.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {!u.approved && (
+          <button
+            onClick={() => onUpdate(u.id, { approved: true })}
+            className="px-3 py-2 rounded-lg bg-brand hover:bg-brand-dark text-white text-sm font-semibold flex items-center gap-1.5 cursor-pointer"
+          >
+            <Check className="w-4 h-4" /> Aprovar
+          </button>
+        )}
+        {u.approved && !isMe && (
+          <button
+            onClick={() => onUpdate(u.id, { approved: false })}
+            className="px-3 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+          >
+            Bloquear
+          </button>
+        )}
+        {!isMe && (
+          <button onClick={() => onRemove(u)} className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-500/10 cursor-pointer" title="Remover">
+            <Trash2 className="w-4 h-4" />
+          </button>
         )}
       </div>
     </div>

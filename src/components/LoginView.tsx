@@ -1,205 +1,245 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState } from 'react';
-import { LogIn, Key, ShieldCheck, CreditCard, Layout, Zap, Award, Mail, Lock, UserPlus } from 'lucide-react';
+import { ArrowRight, Mail, Lock, User, Route, ShieldCheck, FileText, Smartphone } from 'lucide-react';
+import { Logo } from './Logo';
+import type { Role } from '../types';
+import { ROLE_LABEL } from '../lib/permissions';
+import { cn } from '../lib/utils';
+
+type Mode = 'signin' | 'signup' | 'reset';
 
 interface LoginViewProps {
-  onLogin?: (user: { uid: string; email: string; displayName: string }) => void;
+  isDemo: boolean;
+  onSignIn: (email: string, password: string, demoRole?: Role) => Promise<void>;
+  onSignUp: (email: string, password: string, name: string) => Promise<'confirm_email' | 'ok'>;
+  onReset: (email: string) => Promise<void>;
 }
 
-export function LoginView({ onLogin }: LoginViewProps) {
+const inputCls =
+  'w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:ring-2 focus:ring-brand/60 focus:border-brand outline-none transition';
+
+export function LoginView({ isDemo, onSignIn, onSignUp, onReset }: LoginViewProps) {
+  const [mode, setMode] = useState<Mode>('signin');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [demoRole, setDemoRole] = useState<Role>('admin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    setError(null);
+    setInfo(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Por favor, preencha todos os campos.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
-
-    // Simulated offline/local authentication
-    setTimeout(() => {
-      setLoading(false);
-      if (onLogin) {
-        onLogin({
-          uid: 'local_' + Math.random().toString(36).substring(2, 9),
-          email: email.trim(),
-          displayName: email.split('@')[0]
-        });
+    setInfo(null);
+    try {
+      if (mode === 'signin') {
+        await onSignIn(email.trim(), password, demoRole);
+      } else if (mode === 'signup') {
+        const res = await onSignUp(email.trim(), password, name.trim());
+        if (res === 'confirm_email') {
+          setInfo('Cadastro feito! Enviamos um link de confirmação para o seu e-mail. Depois de confirmar, volte aqui e entre.');
+          setMode('signin');
+        }
+      } else {
+        await onReset(email.trim());
+        setInfo('Se o e-mail estiver cadastrado, você vai receber um link para criar uma nova senha.');
+        setMode('signin');
       }
-    }, 800);
+    } catch (err: any) {
+      setError(err?.message || 'Algo deu errado. Tente de novo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-        
-        {/* Branding Info Grid (7 columns) */}
-        <div className="md:col-span-7 space-y-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-3 animate-fade-in">
-            <div className="w-12 h-12 bg-brand rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-xl shadow-brand/20">
-              T
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight leading-none">
-                Transporte Demo
-              </h1>
-              <p className="text-xs uppercase tracking-wider font-extrabold text-brand mt-1 font-mono">
-                SISTEMA OPERACIONAL & FINANCEIRO
-              </p>
-            </div>
-          </div>
-
-          <h2 className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight">
-            Gestão profissional de transporte de veículos.
-          </h2>
-          <p className="text-zinc-600 dark:text-zinc-400 max-w-xl text-base leading-relaxed">
-            Controle frotas, motoristas, contratos, coletas, faturamento e solicitações de transporte em um único ecossistema seguro com banco de dados em tempo real.
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 app-bg flex">
+      {/* Lado da marca (só em telas grandes) */}
+      <div className="hidden lg:flex flex-1 flex-col justify-between p-12 border-r border-zinc-200 dark:border-zinc-800/80 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.07] dark:opacity-[0.12] pointer-events-none"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(115deg, transparent 0 46px, #6D4AFF 46px 48px, transparent 48px 96px)',
+          }}
+        />
+        <Logo />
+        <div className="relative max-w-lg">
+          <h1 className="text-5xl font-bold tracking-tight leading-[1.05] text-zinc-900 dark:text-white">
+            Cada frete,
+            <br />
+            do orçamento
+            <br />
+            <span className="text-brand dark:text-brand-light">à entrega.</span>
+          </h1>
+          <p className="mt-5 text-zinc-600 dark:text-zinc-400 text-base leading-relaxed">
+            Clientes, frota, motoristas, contratos e financeiro da sua transportadora num só lugar, no computador ou no celular.
           </p>
-
-          {/* Highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-left">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-brand/10 text-brand rounded-lg mt-0.5">
-                <ShieldCheck className="w-4 h-4" />
+          <div className="mt-10 grid grid-cols-2 gap-4">
+            {[
+              { icon: Route, t: 'Fretes e rotas', d: 'Do agendamento à entrega' },
+              { icon: FileText, t: 'PDF com sua marca', d: 'Orçamentos e contratos' },
+              { icon: ShieldCheck, t: 'Acessos por função', d: 'Admin, operador e motorista' },
+              { icon: Smartphone, t: 'Feito para o celular', d: 'Motorista atualiza na estrada' },
+            ].map(({ icon: Icon, t, d }) => (
+              <div key={t} className="flex gap-3">
+                <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand dark:text-brand-light flex items-center justify-center shrink-0">
+                  <Icon className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t}</p>
+                  <p className="text-xs text-zinc-500">{d}</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200">Totalmente Protegido</h4>
-                <p className="text-xs text-zinc-500">Dados isolados por usuário no Firestore</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="p-2 bg-brand/10 text-brand rounded-lg mt-0.5">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200">Faturamento & Contratos</h4>
-                <p className="text-xs text-zinc-500">Gere ordens de serviço e contratos direto no navegador</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-brand/10 text-brand rounded-lg mt-0.5">
-                <Layout className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200">Painel Operacional</h4>
-                <p className="text-xs text-zinc-500">Controle completo de frotas e motoristas em trânsito</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-brand/10 text-brand rounded-lg mt-0.5">
-                <Zap className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-200">Sincronização em Tempo Real</h4>
-                <p className="text-xs text-zinc-500">Sua contabilidade atualizada instantaneamente</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+        <p className="relative text-xs text-zinc-400">© {new Date().getFullYear()} Cargova</p>
+      </div>
 
-        {/* Login Card Grid (5 columns) */}
-        <div className="md:col-span-5 w-full bg-white dark:bg-zinc-900 border border-zinc-250/60 dark:border-zinc-800/80 rounded-3xl p-8 md:p-10 shadow-2xl shadow-zinc-250/20 dark:shadow-none">
-          <div className="text-center md:text-left mb-6">
-            <div className="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-950/20 flex items-center justify-center text-brand mb-4 mx-auto md:mx-0">
-              {isSignUp ? <UserPlus className="w-5 h-5" /> : <Key className="w-5 h-5" />}
-            </div>
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              {isSignUp ? 'Cadastrar Novo Colaborador' : 'Acesso ao Painel'}
-            </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {isSignUp
-                ? 'Primeiro acesso ou novo colaborador? Cadastre-se aqui. O seu acesso precisará ser autorizado pelo administrador no painel.'
-                : 'Insira suas credenciais de e-mail e senha para gerenciar seus dados.'}
-            </p>
+      {/* Formulário */}
+      <div className="flex-1 lg:max-w-xl flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden mb-10">
+            <Logo />
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/20 text-xs text-red-650 dark:text-red-400 border border-red-200/40 font-bold leading-relaxed whitespace-pre-line">
-              {error}
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+            {mode === 'signin' ? 'Entrar' : mode === 'signup' ? 'Criar conta' : 'Recuperar senha'}
+          </h2>
+          <p className="text-sm text-zinc-500 mt-1 mb-7">
+            {mode === 'signin' && 'Acesse o painel da sua transportadora.'}
+            {mode === 'signup' && 'Novos usuários precisam ser liberados por um administrador.'}
+            {mode === 'reset' && 'Digite seu e-mail para receber o link.'}
+          </p>
+
+          {isDemo && (
+            <div className="mb-5 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+              <b>Modo demonstração:</b> qualquer e-mail e senha funcionam, e os dados ficam só neste navegador.
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-zinc-400" /> Endereço de E-mail
-              </label>
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-medium text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+          {info && (
+            <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              {info}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {mode === 'signup' && (
+              <Field icon={User} label="Nome">
+                <input required value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Seu nome" />
+              </Field>
+            )}
+            <Field icon={Mail} label="E-mail">
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-150"
-                placeholder="colaborador@transportedemo.com.br"
+                className={inputCls}
+                placeholder="voce@empresa.com.br"
               />
-            </div>
+            </Field>
+            {mode !== 'reset' && (
+              <Field icon={Lock} label="Senha">
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputCls}
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </Field>
+            )}
 
-            <div>
-              <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase mb-1.5 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-zinc-400" /> Senha de Segurança
-              </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 text-sm focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all dark:text-zinc-150"
-                placeholder="Sua senha (mínimo 6 caracteres)"
-              />
-            </div>
+            {isDemo && mode === 'signin' && (
+              <div>
+                <p className="text-xs font-medium text-zinc-500 mb-1.5">Entrar como</p>
+                <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                  {(['admin', 'operador', 'motorista'] as Role[]).map((r) => (
+                    <button
+                      type="button"
+                      key={r}
+                      onClick={() => setDemoRole(r)}
+                      className={cn(
+                        'py-2 rounded-lg text-xs font-semibold transition cursor-pointer',
+                        demoRole === r
+                          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200',
+                      )}
+                    >
+                      {ROLE_LABEL[r]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-brand hover:bg-brand-dark text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand/20 disabled:scale-100 disabled:opacity-50 cursor-pointer mt-2"
+              className="w-full mt-2 py-3 rounded-xl bg-brand hover:bg-brand-dark text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-glow transition disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <LogIn className="w-4 h-4" />
+                <>
+                  {mode === 'signin' ? 'Entrar' : mode === 'signup' ? 'Criar conta' : 'Enviar link'}
+                  <ArrowRight className="w-4 h-4" />
+                </>
               )}
-              {loading ? 'Processando...' : isSignUp ? 'Solicitar Acesso / Cadastrar' : 'Entrar no Sistema'}
             </button>
           </form>
 
-          {/* Form switch toggle */}
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-              }}
-              className="text-xs text-brand hover:text-brand-dark font-bold underline transition-colors focus:outline-none bg-transparent border-none cursor-pointer"
-            >
-              {isSignUp ? 'Já possui login? Clique aqui para Entrar' : 'Primeiro acesso / Sou um novo colaborador'}
-            </button>
-          </div>
-
-          <div className="mt-6 border-t border-zinc-150 dark:border-zinc-800 pt-5 text-center">
-            <div className="flex items-center justify-center gap-1 text-[9px] uppercase font-bold text-zinc-400 font-mono tracking-wider">
-              <Award className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Painel Administrativo Interno</span>
+          {!isDemo && (
+            <div className="mt-6 flex flex-col gap-2 text-sm text-center">
+              {mode === 'signin' ? (
+                <>
+                  <button onClick={() => switchMode('signup')} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer">
+                    Não tem conta? <span className="text-brand dark:text-brand-light font-semibold">Cadastre-se</span>
+                  </button>
+                  <button onClick={() => switchMode('reset')} className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer">
+                    Esqueci minha senha
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => switchMode('signin')} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer">
+                  Já tem conta? <span className="text-brand dark:text-brand-light font-semibold">Entrar</span>
+                </button>
+              )}
             </div>
-            <p className="text-[9px] text-zinc-450 dark:text-zinc-500 mt-2">
-              Importante: Ative o método de login por "E-mail/Senha" no console do Firebase para que funcione.
-            </p>
-          </div>
+          )}
         </div>
-
       </div>
     </div>
+  );
+}
+
+function Field({ icon: Icon, label, children }: { icon: React.ComponentType<{ className?: string }>; label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-zinc-500 mb-1.5">{label}</span>
+      <span className="relative block">
+        <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+        {children}
+      </span>
+    </label>
   );
 }
