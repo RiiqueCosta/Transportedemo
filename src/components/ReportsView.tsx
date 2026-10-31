@@ -9,7 +9,6 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Download, BarChart3, TrendingUp, TrendingDown, Truck, Users } from 'lucide-react';
 // @ts-ignore
-import html2pdf from 'html2pdf.js';
 
 interface ReportsViewProps {
   records: AppRecord[];
@@ -112,7 +111,7 @@ export function ReportsView({ records, config }: ReportsViewProps) {
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    html2pdf().set(opt as any).from(element).save();
+    import('html2pdf.js').then(({ default: html2pdf }) => html2pdf().set(opt as any).from(element).save());
   };
 
   const topClients = Array.from(finance.reduce((acc, curr) => {

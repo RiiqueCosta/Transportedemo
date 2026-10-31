@@ -1,4 +1,3 @@
-import html2pdf from 'html2pdf.js';
 import type { AppConfig, Client, Contract, TransportRequest } from '../types';
 import { formatCurrency, formatDate } from './utils';
 
@@ -64,17 +63,17 @@ async function save(html: string, filename: string) {
   el.style.top = '0';
   document.body.appendChild(el);
   try {
-    await html2pdf()
-      .set({
+    // Carregado sob demanda para não pesar a abertura do app
+    const { default: html2pdf } = await import('html2pdf.js');
+    const options: any = {
         margin: [8, 8, 8, 8],
         filename,
         image: { type: 'jpeg', quality: 0.96 },
         html2canvas: { scale: 2, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'] },
-      })
-      .from(el.firstElementChild as HTMLElement)
-      .save();
+    };
+    await html2pdf().set(options).from(el.firstElementChild as HTMLElement).save();
   } finally {
     el.remove();
   }

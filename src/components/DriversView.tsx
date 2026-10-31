@@ -31,7 +31,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
     cnhExpiry: '',
     city: '',
     state: '',
-    status: 'available' as 'available' | 'on_trip' | 'off_duty' | 'inactive',
+    status: 'available' as Driver['status'],
     bloodType: '',
     observations: ''
   });
@@ -76,7 +76,7 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
       rg: driver.rg || '',
       phone: driver.phone || '',
       cnh: driver.cnh || '',
-      cnhCategory: driver.cnhCategory || 'D',
+      cnhCategory: (driver.cnhCategory || 'D') as 'A' | 'B' | 'C' | 'D' | 'E',
       cnhExpiry: driver.cnhExpiry || '',
       city: driver.city || '',
       state: driver.state || '',
@@ -95,6 +95,8 @@ export function DriversView({ records, onAdd, onUpdate, onDelete }: DriversViewP
       });
     } else {
       const newDriver: Driver = {
+        email: '',
+        address: '',
         id: generateId(),
         type: 'driver',
         dateCreated: new Date().toISOString(),
